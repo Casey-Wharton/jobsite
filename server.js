@@ -10,6 +10,8 @@ const bodyParser = require('body-parser');
 const indexRouter = require('./routes/index');
 const phoneRouter = require('./routes/phone-script');
 const userRouter = require('./routes/users');
+const bookRouter = require('./routes/books');
+const publisherRouter = require('./routes/publishers');
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
@@ -29,5 +31,7 @@ db.once('open', () => console.log('Connected to Mongoose'))
 app.use('/', indexRouter);
 app.use('/phone-script', phoneRouter);
 app.use('/users', userRouter);
+app.use('/books', bookRouter);
+app.use('/publishers', publisherRouter);
 
 app.listen(process.env.PORT || 3000);

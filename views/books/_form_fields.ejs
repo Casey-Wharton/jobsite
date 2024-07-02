@@ -1,0 +1,40 @@
+<div>
+    <label>Title</label>
+    <input type="text" name="title" value="<%= book.title %>">
+</div>
+<div>
+    <label>Publisher</label>
+    <select name="publisher">
+        <% publishers.forEach(publisher => { %>
+        <% if (publisher.id === book.publisher) { %>
+        <option selected label="<%= publisher.name %>" value="<%= publisher.id %>">
+        <% } else { %>
+        <option label="<%= publisher.name %>" value="<%= publisher.id %>">
+        <% } %>
+        <% }) %>
+    </select>
+</div>
+<div>
+    <label>ISBN-13</label>
+    <input type="number" name="isbn13" value="<%= book.isbn13 %>">
+</div>
+<div>
+    <label>Shelf Location</label>
+    <input type="text" name="shelfLocation" value="<%= book.shelfLocation %>">
+</div>
+<div>
+    <label>Highlighting Time (minutes)</label>
+    <input type="number" name="highlightTime" value="<%= book.highlightTime %>">
+</div>
+<div>
+    <label>Cost</label>
+    <input type="number" name="cost" value="<%= book.cost %>">
+</div>
+<div>
+    <label>Retail Price</label>
+    <input type="number" name="price" value="<%= book.price %>">
+</div>
+<div>
+    <label>2D Book Image</label>
+    <input type="file" name="twoDImage">
+</div>

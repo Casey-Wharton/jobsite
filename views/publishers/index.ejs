@@ -1,0 +1,12 @@
+<a href="/publishers/new">Create New Publisher</a>
+
+<h2>Search Publishers</h2>
+<form action="/publishers" method="GET">
+<label>Name</label>
+<input type="text" name="name" value="<%= searchOptions.name %>">
+<button type="submit">Search</button>
+</form>
+<br>
+<% publishers.forEach(publisher => { %>
+    <div><%= publisher.name %></div>
+<% }) %>
