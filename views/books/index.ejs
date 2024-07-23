@@ -1,1 +1,67 @@
-<a href="/books/new">Click here to create new book</a>
+<a href="/books/new">Create New Book</a>
+
+<h2>Search Books</h2>
+<form action="/books" method="GET">
+    <div>
+        <label>Title</label>
+        <input type="text" name="title" value="<%= searchOptions.title %>">
+    </div>
+    <button type="submit">Search</button>
+</form>
+<div class="grid-container">
+  <% 
+    books.sort((a, b) => {
+      if (a.title < b.title) return -1;
+      if (a.title > b.title) return 1;
+      return 0;
+    });
+    books.forEach(book => { 
+  %>
+      <div class="card <%= book.inventory > 0 ? 'in-stock' : '' %>">
+        <h2><%= book.title %></h2>
+        <img src="<%= book.coverImagePath %>" alt="<%= book.title %> cover image">
+        <p><%= book.publisher.name %></p>
+        <p><%= `Shelf ${book.shelfLocation}` %></p>
+      </div>
+  <% }) %>
+</div>
+
+
+<style>
+    .grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 16px;
+}
+
+.in-stock {
+  background-color:rgb(212, 241, 212)!important;
+}
+
+.card {
+  background-color: rgb(243, 212, 212);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 16px;
+  text-align: center;
+}
+
+.card h2 {
+  font-size: 1rem;
+  margin-bottom: 8px;
+  height: 1rem;
+}
+
+.card img {
+  max-width: 100%;
+  height: 65%;
+  margin-bottom: 8px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.1);
+}
+
+.card p {
+  margin: 4px 0;
+}
+</style?>

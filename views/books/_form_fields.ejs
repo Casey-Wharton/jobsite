@@ -1,8 +1,8 @@
-<div>
+<div class="create-book-fields">
     <label>Title</label>
     <input type="text" name="title" value="<%= book.title %>">
 </div>
-<div>
+<div class="create-book-fields">
     <label>Publisher</label>
     <select name="publisher">
         <% publishers.forEach(publisher => { %>
@@ -14,27 +14,31 @@
         <% }) %>
     </select>
 </div>
-<div>
+<div class="create-book-fields">
     <label>ISBN-13</label>
     <input type="number" name="isbn13" value="<%= book.isbn13 %>">
 </div>
-<div>
+<div class="create-book-fields">
     <label>Shelf Location</label>
     <input type="text" name="shelfLocation" value="<%= book.shelfLocation %>">
 </div>
-<div>
+<div class="create-book-fields">
     <label>Highlighting Time (minutes)</label>
     <input type="number" name="highlightTime" value="<%= book.highlightTime %>">
 </div>
-<div>
+<div class="create-book-fields">
     <label>Cost</label>
     <input type="number" name="cost" value="<%= book.cost %>">
 </div>
-<div>
+<div class="create-book-fields">
     <label>Retail Price</label>
     <input type="number" name="price" value="<%= book.price %>">
 </div>
-<div>
+<div class="create-book-fields">
     <label>2D Book Image</label>
     <input type="file" name="twoDImage">
 </div>
+
+<style>
+    .create-book-fields {padding-bottom:12px;}
+</style>
