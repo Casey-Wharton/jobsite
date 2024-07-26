@@ -2,41 +2,16 @@
     <label>Title</label>
     <input type="text" name="title" value="<%= book.title %>">
 </div>
-<div class="create-book-fields">
-    <label>Publisher</label>
-    <select name="publisher">
-        <% publishers.forEach(publisher => { %>
-        <% if (publisher.id === book.publisher) { %>
-        <option selected label="<%= publisher.name %>" value="<%= publisher.id %>">
-        <% } else { %>
-        <option label="<%= publisher.name %>" value="<%= publisher.id %>">
-        <% } %>
-        <% }) %>
-    </select>
-</div>
-<div class="create-book-fields">
-    <label>ISBN-13</label>
-    <input type="number" name="isbn13" value="<%= book.isbn13 %>">
-</div>
-<div class="create-book-fields">
-    <label>Shelf Location</label>
-    <input type="text" name="shelfLocation" value="<%= book.shelfLocation %>">
-</div>
-<div class="create-book-fields">
-    <label>Highlighting Time (minutes)</label>
-    <input type="number" name="highlightTime" value="<%= book.highlightTime %>">
-</div>
-<div class="create-book-fields">
-    <label>Cost</label>
-    <input type="number" name="cost" value="<%= book.cost %>">
-</div>
-<div class="create-book-fields">
-    <label>Retail Price</label>
-    <input type="number" name="price" value="<%= book.price %>">
-</div>
+
 <div class="create-book-fields">
     <label>2D Book Image</label>
     <input type="file" name="twoDImage">
+</div>
+
+<div class="create-book-fields">
+    <label>Do we carry this book?</label>
+    <input type="checkbox" name="isCarried">
+    <label for="isCarried"></label>
 </div>
 
 <style>

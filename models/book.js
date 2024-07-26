@@ -30,14 +30,8 @@ const bookSchema = new mongoose.Schema({
         required: true,
         default: Date.now
     },
-    publisher: {
-        type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        ref: 'Publisher'
-    },
-    inventory: {
-        type: Number,
-        default: 100
+    isCarried: {
+        type: Boolean
     }
 });
 

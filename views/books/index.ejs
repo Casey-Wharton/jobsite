@@ -17,11 +17,13 @@
     });
     books.forEach(book => { 
   %>
-      <div class="card <%= book.inventory > 0 ? 'in-stock' : '' %>">
+      <div class="card <%= book.isCarried === true ? 'in-stock' : '' %>">
         <h2><%= book.title %></h2>
         <img src="<%= book.coverImagePath %>" alt="<%= book.title %> cover image">
-        <p><%= book.publisher.name %></p>
-        <p><%= `Shelf ${book.shelfLocation}` %></p>
+        <div>
+          <a href="/books/<%= book.id %>">View</a>
+          <a href="/books/<%= book.id %>/edit">Edit</a>
+        </div>
       </div>
   <% }) %>
 </div>
@@ -30,7 +32,7 @@
 <style>
     .grid-container {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 16px;
   padding: 16px;
 }
@@ -51,7 +53,7 @@
 .card h2 {
   font-size: 1rem;
   margin-bottom: 8px;
-  height: 1rem;
+  height: 2rem;
 }
 
 .card img {
@@ -64,4 +66,4 @@
 .card p {
   margin: 4px 0;
 }
-</style?>
+</style>
