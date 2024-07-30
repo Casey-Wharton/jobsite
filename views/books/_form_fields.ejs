@@ -1,19 +1,78 @@
+<h4>Basic Information</h4>
 <div class="create-book-fields">
-    <label>Title</label>
+    <label>Title<span class="required">*</span></label>
     <input type="text" name="title" value="<%= book.title %>">
 </div>
 
 <div class="create-book-fields">
-    <label>2D Book Image</label>
-    <input type="file" name="twoDImage">
+    <label>ISBN-13</label>
+    <input type="text" name="isbn13" value="<%= book.isbn13 %>">
+</div>
+
+<div class="create-book-fields">
+    <label>Book Cover Image</label>
+    <input class="upload-button" type="file" name="twoDImage">
 </div>
 
 <div class="create-book-fields">
     <label>Do we carry this book?</label>
-    <input type="checkbox" name="isCarried">
-    <label for="isCarried"></label>
+    <input type="checkbox" name="isCarried" <% if (book.isCarried) { %>checked<% } %>>
 </div>
 
+<div>
+    <h4>Rack Location <div class="hover-container">
+        <span class="hover-text">What's this?</span>
+        <img src="https://internalpage.s3.amazonaws.com/rackdiagram.png" alt="Rack Diagram" class="hover-image">
+    </div></h4>
+
+<div class="create-book-fields">
+    <label>Rack: Unit</label>
+    <input type="text" name="rackUnit" value="<%= book.rackUnit %>">
+</div>
+
+<div class="create-book-fields">
+    <label>Rack: Shelf</label>
+    <input type="text" name="rackShelf" value="<%= book.rackShelf %>">
+</div>
+
+<div class="create-book-fields">
+    <label>Rack: Position</label>
+    <input type="text" name="rackPosition" value="<%= book.rackPosition %>">
+</div>
+</div>
+
+<p class="required">* = required field</p>
 <style>
     .create-book-fields {padding-bottom:12px;}
+    .upload-button {padding: 4px; border: 1px solid rgb(189, 189, 189);}
+    .required {font-size:16px;color:red;}
+
+    .hover-container {
+    position: relative;
+    display: inline-block;
+}
+
+.hover-text {
+    cursor: pointer;
+    color: #007BFF;
+    text-decoration: underline;
+    font-size:14px;
+}
+
+.hover-image {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-top: 10px;
+    width: 300px; /* Adjust the size as needed */
+    border: 1px solid #ccc;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    z-index: 100;
+}
+
+.hover-container:hover .hover-image {
+    display: block;
+}
 </style>

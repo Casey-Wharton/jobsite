@@ -10,17 +10,17 @@ const bookSchema = new mongoose.Schema({
     isbn13: {
         type: Number
     },
-    shelfLocation: {
+    rackUnit: {
+        type: String
+    },
+    rackShelf: {
+        type: String
+    },
+    rackPosition: {
         type: String
     },
     coverImage: {
         type: String
-    },
-    highlightTime: {
-        type: Number
-    },
-    cost: {
-        type: Number
     },
     price: {
         type: Number

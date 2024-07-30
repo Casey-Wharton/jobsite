@@ -12,6 +12,7 @@ const indexRouter = require('./routes/index');
 const phoneRouter = require('./routes/phone-script');
 const userRouter = require('./routes/users');
 const bookRouter = require('./routes/books');
+const booksetRouter = require('./routes/booksets');
 const publisherRouter = require('./routes/publishers');
 
 app.set('view engine', 'ejs');
@@ -34,6 +35,7 @@ app.use('/', indexRouter);
 app.use('/phone-script', phoneRouter);
 app.use('/users', userRouter);
 app.use('/books', bookRouter);
+app.use('/booksets', booksetRouter);
 app.use('/publishers', publisherRouter);
 
 app.listen(process.env.PORT || 3000);
