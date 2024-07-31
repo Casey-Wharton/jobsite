@@ -15,6 +15,11 @@
 </div>
 
 <div class="create-book-fields">
+    <label>Book PDF</label>
+    <input class="upload-button" type="file" name="bookPDF">
+</div>
+
+<div class="create-book-fields">
     <label>Do we carry this book?</label>
     <input type="checkbox" name="isCarried" <% if (book.isCarried) { %>checked<% } %>>
 </div>
@@ -22,7 +27,7 @@
 <div>
     <h4>Rack Location <div class="hover-container">
         <span class="hover-text">What's this?</span>
-        <img src="https://internalpage.s3.amazonaws.com/rackdiagram.png" alt="Rack Diagram" class="hover-image">
+        <img src="https://internalpage.s3.amazonaws.com/bookfiles/bookimages/rackdiagram.png" alt="Rack Diagram" class="hover-image">
     </div></h4>
 
 <div class="create-book-fields">

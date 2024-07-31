@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const path = require('path')
 const coverImageBasePath = 'uploads/bookCovers'
+const bookPDFBasePath = 'uploads/bookPDFs'
 
 const bookSchema = new mongoose.Schema({
     title: {
@@ -22,6 +23,9 @@ const bookSchema = new mongoose.Schema({
     coverImage: {
         type: String
     },
+    bookPDF: {
+        type: String
+    },
     price: {
         type: Number
     },
@@ -41,5 +45,12 @@ bookSchema.virtual('coverImagePath').get(function() {
     }
 })
 
+bookSchema.virtual('bookPDFPath').get(function() {
+    if (this.bookPDF != null) {
+        return path.join('/', bookPDFBasePath, this.bookPDF)
+    }
+})
+
 module.exports = mongoose.model('Book', bookSchema);
 module.exports.coverImageBasePath = coverImageBasePath
+module.exports.bookPDFBasePath = bookPDFBasePath

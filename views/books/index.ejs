@@ -31,16 +31,19 @@
         <% if (book.coverImagePath) { %>
           <img src="<%= book.coverImagePath %>" alt="<%= book.title %> cover image">
           <% } else { %> 
-            <img class="book-missing" src="https://internalpage.s3.amazonaws.com/covermissing.png" alt="Missing Cover Image">
+            <img class="book-missing" src="https://internalpage.s3.amazonaws.com/bookfiles/bookimages/covermissing.png" alt="Missing Cover Image">
             <% } %> 
         <div>
-          <a href="/books/<%= book.id %>">View</a>
-          <a href="/books/<%= book.id %>/edit">Edit</a>
+          <a class="book-links" href="/books/<%= book.id %>">View</a>
+          <a class="book-links" href="/books/<%= book.id %>/edit">Edit</a>
+          <% if (book.bookPDFPath) { %>
+            <br><a class="book-links" href="<%= book.bookPDFPath %>" target="_blank">Print PDF</a>
+          <% }%>
+
         </div>
       </div>
   <% }) %>
 </div>
-
 
 <style>
     .grid-container {
@@ -48,6 +51,24 @@
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 16px;
   padding: 16px;
+}
+
+.book-links {text-decoration:none;
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  background-color: #667ead;
+  border: none;
+  border-radius: 5px;
+  margin: 4px 0;
+}
+
+.book-links:hover {
+  background-color:#92b6ff;
 }
 
 .in-stock {

@@ -5,19 +5,28 @@ const path = require('path');
 const fs = require('fs');
 const Book = require('../models/book');
 const uploadPath = path.join('public', Book.coverImageBasePath);
+const uploadPathPDF = path.join('public',Book.bookPDFBasePath);
 // const imageMimeTypes = ['image/jpeg', 'image/png', 'image/gif']; NOT CURRENTLY USED
 
 const storage = multer.diskStorage({
     destination: function(req, file, cb) {
-        cb(null, uploadPath)
+        if (file.fieldname === 'twoDImage') {
+            cb(null, uploadPath);
+        } else if (file.fieldname === 'bookPDF') {
+            cb(null, uploadPathPDF);
+        }
     },
     filename: function (req, file, cb) {
         cb(null, Math.floor(100000 + Math.random() * 900000) + file.originalname)
     }
 })
+
 const upload = multer({
-storage
-});
+    storage: storage
+}).fields([
+    { name: 'twoDImage', maxCount: 1 },
+    { name: 'bookPDF', maxCount: 1 }
+]);
 
 // All Books Route
 router.get('/', async (req, res) => {
@@ -45,8 +54,9 @@ router.get('/new', async (req, res) => {
 });
 
 // Create Book Route
-router.post('/', upload.single('twoDImage'), async (req, res) => {
-    const fileName = req.file != null ? req.file.filename : null;
+router.post('/', upload, async (req, res) => {
+    const fileNameCover = req.files['twoDImage'] != null ? req.files['twoDImage'][0].filename : null;
+    const fileNamePDF = req.files['bookPDF'] != null ? req.files['bookPDF'][0].filename : null;
     let book;
 
     try {
@@ -56,7 +66,8 @@ router.post('/', upload.single('twoDImage'), async (req, res) => {
             rackUnit: req.body.rackUnit,
             rackShelf: req.body.rackShelf,
             rackPosition: req.body.rackPosition,
-            coverImage: fileName,
+            coverImage: fileNameCover,
+            bookPDF: fileNamePDF,
             isCarried: req.body.isCarried ? true : false
         });
         const newBook = await book.save();
@@ -64,14 +75,14 @@ router.post('/', upload.single('twoDImage'), async (req, res) => {
     } catch (err) {
         console.error(err); // Log the error to the console
         if (fileName != null) {
-            removeBookCover(fileName);
+            removeBookCover(fileNameCover);
         }
         renderNewPage(res, book || new Book(), true);
     }
 });
 
-function removeBookCover(fileName) {
-    fs.unlink(path.join(uploadPath, fileName), err => {
+function removeBookCover(fileNameCover) {
+    fs.unlink(path.join(uploadPath, fileNameCover), err => {
         if (err) console.error(err);
     });
 }
@@ -112,15 +123,19 @@ router.get('/:id/edit', async (req, res) => {
 })
 
 // Submit Edit Individual Book Route
-router.put('/:id', upload.single('twoDImage'), async (req, res) => {
-    const fileName = (req.file === undefined) ? null : req.file.filename;
+router.put('/:id', upload, async (req, res) => {
+    const fileNameCover = req.files['twoDImage'] != null ? req.files['twoDImage'][0].filename : null;
+    const fileNamePDF = req.files['bookPDF'] != null ? req.files['bookPDF'][0].filename : null;
     let book;
 
     try {
         book = await Book.findById(req.params.id)
         book.title = req.body.title
-        if (fileName !== null) {
-            book.coverImage = fileName;
+        if (fileNameCover !== null) {
+            book.coverImage = fileNameCover;
+        }
+        if (fileNamePDF !== null) {
+            book.bookPDF = fileNamePDF;
         }
         book.isCarried = req.body.isCarried ? true : false
         book.isbn13 = req.body.isbn13
