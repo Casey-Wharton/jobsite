@@ -28,16 +28,16 @@
   %>
       <div class="card <%= book.isCarried === true ? 'in-stock' : '' %>">
         <h2><%= book.title %></h2>
-        <% if (book.coverImagePath) { %>
-          <img src="<%= book.coverImagePath %>" alt="<%= book.title %> cover image">
+        <% if (book.coverImage) { %>
+          <img src="<%= book.coverImage %>" alt="<%= book.title %> cover image">
           <% } else { %> 
             <img class="book-missing" src="https://internalpage.s3.amazonaws.com/bookfiles/bookimages/covermissing.png" alt="Missing Cover Image">
             <% } %> 
         <div>
           <a class="book-links" href="/books/<%= book.id %>">View</a>
           <a class="book-links" href="/books/<%= book.id %>/edit">Edit</a>
-          <% if (book.bookPDFPath) { %>
-            <br><a class="book-links" href="<%= book.bookPDFPath %>" target="_blank">Print PDF</a>
+          <% if (book.bookPDF) { %>
+            <br><a class="book-links" href="<%= book.bookPDF %>" target="_blank">Print PDF</a>
           <% }%>
 
         </div>

@@ -49,6 +49,9 @@ router.post('/', upload, async (req, res) => {
         let pdfLink = '';
         let imageLink = '';
         results.forEach(item => {
+            if (item === undefined) {
+                return;
+              }
             const location = item.Location;
             if (location.endsWith('.pdf')) {
               pdfLink = location;
@@ -56,8 +59,6 @@ router.post('/', upload, async (req, res) => {
               imageLink = location;
             }
           });
-
-          console.log(imageLink)
 
         book = new Book({
             title: req.body.title,

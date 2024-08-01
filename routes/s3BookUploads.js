@@ -18,12 +18,14 @@ const s3Uploadv2 = async (files) => {
             return {
             Bucket: process.env.AWS_BUCKET_NAME,
             Key: `bookfiles/bookpdfs/${randomNumber}`,
+            ContentType: 'application/pdf',
             Body: file.buffer
             } 
           } else {
             return {
                 Bucket: process.env.AWS_BUCKET_NAME,
                 Key: `bookfiles/bookimages/${randomNumber}`,
+                ContentType: 'image/png',
                 Body: file.buffer
                 } 
         }
