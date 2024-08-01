@@ -4,22 +4,9 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const Book = require('../models/book');
-const uploadPath = path.join('public', Book.coverImageBasePath);
-const uploadPathPDF = path.join('public',Book.bookPDFBasePath);
-// const imageMimeTypes = ['image/jpeg', 'image/png', 'image/gif']; NOT CURRENTLY USED
+const s3Uploadv2 = require('./s3BookUploads');
 
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        if (file.fieldname === 'twoDImage') {
-            cb(null, uploadPath);
-        } else if (file.fieldname === 'bookPDF') {
-            cb(null, uploadPathPDF);
-        }
-    },
-    filename: function (req, file, cb) {
-        cb(null, Math.floor(100000 + Math.random() * 900000) + file.originalname)
-    }
-})
+const storage = multer.memoryStorage()
 
 const upload = multer({
     storage: storage
@@ -55,37 +42,39 @@ router.get('/new', async (req, res) => {
 
 // Create Book Route
 router.post('/', upload, async (req, res) => {
-    const fileNameCover = req.files['twoDImage'] != null ? req.files['twoDImage'][0].filename : null;
-    const fileNamePDF = req.files['bookPDF'] != null ? req.files['bookPDF'][0].filename : null;
     let book;
 
     try {
+        const results = await s3Uploadv2(req.files)
+        let pdfLink = '';
+        let imageLink = '';
+        results.forEach(item => {
+            const location = item.Location;
+            if (location.endsWith('.pdf')) {
+              pdfLink = location;
+            } else {
+              imageLink = location;
+            }
+          });
+
+          console.log(imageLink)
+
         book = new Book({
             title: req.body.title,
             isbn13: req.body.isbn13,
             rackUnit: req.body.rackUnit,
             rackShelf: req.body.rackShelf,
             rackPosition: req.body.rackPosition,
-            coverImage: fileNameCover,
-            bookPDF: fileNamePDF,
+            coverImage: imageLink,
+            bookPDF: pdfLink,
             isCarried: req.body.isCarried ? true : false
         });
         const newBook = await book.save();
         res.redirect('books/');
     } catch (err) {
-        console.error(err); // Log the error to the console
-        if (fileName != null) {
-            removeBookCover(fileNameCover);
-        }
-        renderNewPage(res, book || new Book(), true);
+        console.error(err);
     }
 });
-
-function removeBookCover(fileNameCover) {
-    fs.unlink(path.join(uploadPath, fileNameCover), err => {
-        if (err) console.error(err);
-    });
-}
 
 async function renderNewPage(res, book, hasError = false) {
     try {
