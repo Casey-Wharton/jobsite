@@ -1,0 +1,21 @@
+<div class="main-block">
+<div class="center-edit">
+    <h2>Edit Exam</h2>
+    <h3><%= exam.name %></h3>
+<form action="/exams/<%= exam.id %>?_method=PUT" method="POST">
+    <%- include('_form_fields') %>
+    <a href="/exams/<%= exam.id %>">Cancel</a>
+    <button type="submit">Update</button>
+</form>
+</div>
+
+
+<style>
+.main-block {padding:16px;margin:0 auto;width:25%;}
+
+.center-edit {text-align:center;}
+
+.current-cover {
+    margin-bottom:16px;
+ }
+</style>

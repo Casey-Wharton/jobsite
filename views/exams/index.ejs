@@ -1,0 +1,34 @@
+<h1 class="centered">All Exams</h1>
+
+<a href="/exams/new">Create New Exam</a>
+<h3>Search Exams</h3>
+<form action="/exams" method="GET">
+    <div class="exams-search">
+        <label>Name</label>
+        <input type="text" name="name" value="<%= searchOptions.name %>">
+    </div>
+    <button type="submit">Search</button>
+</form>
+
+<div class="grid-container">
+    <% 
+      exams.sort((a, b) => {
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+        return 0;
+      });
+      exams.forEach(exam => { 
+    %>
+        <div class="card">
+          <h2><%= exam.name %></h2>
+            <div>
+                <a href="/exams/<%= exam.id %>">View</a>
+                <a href="/exams/<%= exam.id %>/edit">Edit</a>  
+          </div>
+        </div>
+    <% }) %>
+  </div>
+
+  <style>
+    .exams-search {margin-bottom:8px;}
+</style>

@@ -114,18 +114,30 @@ router.get('/:id/edit', async (req, res) => {
 
 // Submit Edit Individual Book Route
 router.put('/:id', upload, async (req, res) => {
-    const fileNameCover = req.files['twoDImage'] != null ? req.files['twoDImage'][0].filename : null;
-    const fileNamePDF = req.files['bookPDF'] != null ? req.files['bookPDF'][0].filename : null;
     let book;
 
     try {
+        const results = await s3Uploadv2(req.files)
+        let pdfLink = '';
+        let imageLink = '';
+        results.forEach(item => {
+            if (item === undefined) {
+                return;
+              }
+            const location = item.Location;
+            if (location.endsWith('.pdf')) {
+              pdfLink = location;
+            } else {
+              imageLink = location;
+            }
+          });
         book = await Book.findById(req.params.id)
         book.title = req.body.title
-        if (fileNameCover !== null) {
-            book.coverImage = fileNameCover;
+        if (imageLink !== '') {
+            book.coverImage = imageLink;
         }
-        if (fileNamePDF !== null) {
-            book.bookPDF = fileNamePDF;
+        if (pdfLink !== '') {
+            book.bookPDF = pdfLink;
         }
         book.isCarried = req.body.isCarried ? true : false
         book.isbn13 = req.body.isbn13
@@ -144,10 +156,6 @@ router.put('/:id', upload, async (req, res) => {
             })
         }
     }
-})
-
-router.delete('/:id', (req, res) => {
-    res.send('Delete Book ' + req.params.id)
 })
 
 module.exports = router;
