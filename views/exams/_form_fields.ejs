@@ -1,16 +1,61 @@
 <h4>Basic Information</h4>
-<div class="create-book-fields">
-    <label>Name<span class="required">*</span></label>
-    <input type="text" name="name" value="<%= exam.name %>">
-</div>
+<form action="/exams" method="POST">
+    <div class="create-book-fields">
+        <label>Name<span class="required">*</span></label>
+        <input type="text" name="name" value="<%= exam.name %>">
+    </div>
 
-<div class="books-selected">
+    <div class="create-book-fields">
+        <label>Candidate Bulletin Link</label>
+        <input type="text" name="candidateBulletin" value="<%= exam.candidateBulletin %>">
+    </div>
 
-</div>
+    <div class="create-book-fields">
+        <label>Search Books</label>
+        <input type="text" id="book-search" placeholder="Search books...">
+    </div>
 
-<p class="required">* = required field</p>
+    <div class="create-book-fields">
+        <label>Books</label>
+        <div id="book-list" class="grid-container">
+            <% books.sort((a, b) => a.title.localeCompare(b.title)).forEach(book => { %>
+                <div class="book-item">
+                    <input type="checkbox" name="books" value="<%= book.id %>" <%= exam.books && exam.books.includes(book.id) ? 'checked' : '' %>>
+                    <span class="book-title"><%= book.title %></span>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+    <p class="required">* = required field</p>
+    <button class="save-button" type="submit">Save</button>
+</form>
+
 <style>
-    .create-book-fields {padding-bottom:12px;}
-    .required {font-size:16px;color:red;}
-    .books-selected {border: 1px solid rgb(34, 34, 34);border-radius:4px;background-color:rgb(161, 161, 161);min-height:10vh; width:50%;}
+    .create-book-fields { padding-bottom: 12px; }
+    .required { font-size: 16px; color: red; }
+    .books-selected { border: 1px solid rgb(34, 34, 34); border-radius: 4px; background-color: rgb(161, 161, 161); min-height: 10vh; width: 50%; }
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    .book-item { display: flex; align-items: center; }
+    .book-title { margin-left: 8px; font-size: 14px; }
+    .save-button {margin-bottom:16px;}
 </style>
+
+<script>
+document.getElementById('book-search').addEventListener('input', function() {
+    let searchQuery = this.value.toLowerCase();
+    let bookItems = document.querySelectorAll('.book-item');
+    
+    bookItems.forEach(function(item) {
+        let bookTitle = item.querySelector('.book-title').textContent.toLowerCase();
+        if (bookTitle.includes(searchQuery)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+</script>

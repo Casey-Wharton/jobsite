@@ -1,0 +1,187 @@
+:root {
+    font-family:'Courier New', Courier, monospace;
+
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color:#caced6;
+}
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #667ead;
+    padding: 0 10px;
+    color: white;
+    font-size:20px;
+}
+.left, .center, .right {
+    display: flex;
+    align-items: center;
+}
+.left {
+    flex: 1;
+}
+.center {
+    justify-content: center;
+    flex: 2;
+}
+.right {
+    justify-content: flex-end;
+    flex: 1;
+}
+.search-bar {
+    max-width: 300px;
+    width: 100%;
+    margin-right: 20px; /* Add margin-right to separate from profile */
+}
+.search-bar input[type="text"] {
+    width: 100%;
+    padding: 5px;
+}
+.logo img {
+    height: 60px; /* 50% larger than the previous 40px */
+}
+.menu-items {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex: 2;
+}
+.menu-items a {
+    margin: 0 20px;
+    color: white;
+    text-decoration: none;
+}
+.profile {
+    display: flex;
+    align-items: center;
+    color: white;
+    text-decoration: none;
+}
+.profile img {
+    height: 40px;
+    width: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+.profile span {
+    display: flex;
+    align-items: center;
+}
+.profile span::after {
+    content: '▼';
+    margin-left: 5px;
+    font-size: 12px;
+}
+footer {
+    background-color: #667ead;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    margin-top: auto;
+}
+
+main {
+padding:24px;
+background-color:#ececec;
+width:70%;
+margin: 0 auto;
+height:100%;
+}
+
+    /* Tab styles */
+    .tab {
+        overflow: hidden;
+        border-bottom: 1px solid #ccc;
+        background-color: #f1f1f1;
+    }
+
+    .tab button {
+        background-color: inherit;
+        float: left;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        padding: 14px 16px;
+        transition: 0.3s;
+        font-size: 17px;
+    }
+
+    .tab button:hover {
+        background-color: #ddd;
+    }
+
+    .tab button.active {
+        background-color: #ccc;
+    }
+
+    .tabcontent {
+        display: none;
+        padding: 6px 12px;
+        border-top: none;
+    }
+
+    .create-book-fields { padding-bottom: 12px; }
+    .upload-button { padding: 4px; border: 1px solid rgb(189, 189, 189); }
+    .required { font-size: 16px; color: red; }
+
+    .hover-container {
+        position: relative;
+        display: inline-block;
+    }
+
+    .hover-text {
+        cursor: pointer;
+        color: #007BFF;
+        text-decoration: underline;
+        font-size: 14px;
+    }
+
+    .hover-image {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        margin-top: 10px;
+        width: 300px; /* Adjust the size as needed */
+        border: 1px solid #ccc;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        z-index: 100;
+    }
+
+    .hover-container:hover .hover-image {
+        display: block;
+    }
+
+    .tabs-section h4 {
+        margin-bottom: 10px;
+    }
+
+    .tabs-section button {
+        margin-top: 12px;
+    }
+
+    .tabs-container {
+        display: flex;
+        flex-direction: row;
+        gap: 10px;
+        margin-bottom: 10px; /* Adds space between each set of fields */
+        flex-wrap: nowrap;
+    }
+
+    .tabs-field {
+        flex: 1; /* Each field will take up equal space within the container */
+        min-width: 150px; /* Ensures fields don't get too small */
+        max-width: 200px; /* Ensures fields don't get too wide */
+    }
+
+    .tabs-field label {
+        margin-bottom: 5px;
+    }

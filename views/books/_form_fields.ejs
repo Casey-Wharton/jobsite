@@ -1,83 +1,118 @@
-<h4>Basic Information</h4>
-<div class="create-book-fields">
-    <label>Title<span class="required">*</span></label>
-    <input type="text" name="title" value="<%= book.title %>">
+<div class="tab">
+    <button type="button" class="tablinks" onclick="openTab(event, 'BasicInfo')" id="defaultOpen">Basic Information</button>
+    <button type="button" class="tablinks" onclick="openTab(event, 'Tabs')">Tabs</button>
 </div>
 
-<div class="create-book-fields">
-    <label>ISBN-13</label>
-    <input type="text" name="isbn13" value="<%= book.isbn13 %>">
+<div id="BasicInfo" class="tabcontent">
+    <h4>Basic Information</h4>
+    <div class="create-book-fields">
+        <label>Title<span class="required">*</span></label>
+        <input type="text" name="title" value="<%= book.title %>">
+    </div>
+
+    <div class="create-book-fields">
+        <label>ISBN-13</label>
+        <input type="text" name="isbn13" value="<%= book.isbn13 %>">
+    </div>
+
+    <div class="create-book-fields">
+        <label>Book Cover Image</label>
+        <input class="upload-button" type="file" name="twoDImage">
+    </div>
+
+    <div class="create-book-fields">
+        <label>Book PDF</label>
+        <input class="upload-button" type="file" name="bookPDF">
+    </div>
+
+    <div class="create-book-fields">
+        <label>Do we carry this book?</label>
+        <input type="checkbox" name="isCarried" <% if (book.isCarried) { %>checked<% } %>>
+    </div>
+
+    <div>
+        <h4>Rack Location</h4>
+        <div class="hover-container">
+            <span class="hover-text">What's this?</span>
+            <img src="https://internalpage.s3.amazonaws.com/bookfiles/bookimages/rackdiagram.png" alt="Rack Diagram" class="hover-image">
+        </div>
+
+        <div class="create-book-fields">
+            <label>Rack: Unit</label>
+            <input type="text" name="rackUnit" value="<%= book.rackUnit %>">
+        </div>
+
+        <div class="create-book-fields">
+            <label>Rack: Shelf</label>
+            <input type="text" name="rackShelf" value="<%= book.rackShelf %>">
+        </div>
+
+        <div class="create-book-fields">
+            <label>Rack: Position</label>
+            <input type="text" name="rackPosition" value="<%= book.rackPosition %>">
+        </div>
+    </div>
 </div>
 
-<div class="create-book-fields">
-    <label>Book Cover Image</label>
-    <input class="upload-button" type="file" name="twoDImage">
-</div>
-
-<div class="create-book-fields">
-    <label>Book PDF</label>
-    <input class="upload-button" type="file" name="bookPDF">
-</div>
-
-<div class="create-book-fields">
-    <label>Do we carry this book?</label>
-    <input type="checkbox" name="isCarried" <% if (book.isCarried) { %>checked<% } %>>
-</div>
-
-<div>
-    <h4>Rack Location <div class="hover-container">
-        <span class="hover-text">What's this?</span>
-        <img src="https://internalpage.s3.amazonaws.com/bookfiles/bookimages/rackdiagram.png" alt="Rack Diagram" class="hover-image">
-    </div></h4>
-
-<div class="create-book-fields">
-    <label>Rack: Unit</label>
-    <input type="text" name="rackUnit" value="<%= book.rackUnit %>">
-</div>
-
-<div class="create-book-fields">
-    <label>Rack: Shelf</label>
-    <input type="text" name="rackShelf" value="<%= book.rackShelf %>">
-</div>
-
-<div class="create-book-fields">
-    <label>Rack: Position</label>
-    <input type="text" name="rackPosition" value="<%= book.rackPosition %>">
-</div>
+<div id="Tabs" class="tabcontent">
+    <div class="tabs-section">
+        <h4>Tabs</h4>
+        <div id="tabsContainerWrapper">
+            <% book.tabs.forEach((tab, index) => { %>
+            <div class="tabs-container">
+                <div class="tabs-field">
+                    <label>Chapter</label>
+                    <input type="text" name="tabs[<%= index %>][chapter]" value="<%= tab.chapter %>" class="chapter-field">
+                </div>
+                <div class="tabs-field">
+                    <label>Page</label>
+                    <input type="text" name="tabs[<%= index %>][page]" value="<%= tab.page %>" class="page-field">
+                </div>
+            </div>
+            <% }) %>
+        </div>
+        <button type="button" onclick="addTab()">Add Another Tab</button>
+    </div>
 </div>
 
 <p class="required">* = required field</p>
-<style>
-    .create-book-fields {padding-bottom:12px;}
-    .upload-button {padding: 4px; border: 1px solid rgb(189, 189, 189);}
-    .required {font-size:16px;color:red;}
 
-    .hover-container {
-    position: relative;
-    display: inline-block;
-}
+<script>
+    document.getElementById("defaultOpen").click();
 
-.hover-text {
-    cursor: pointer;
-    color: #007BFF;
-    text-decoration: underline;
-    font-size:14px;
-}
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tabcontent");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablinks");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        document.getElementById(tabName).style.display = "block";
+        evt.currentTarget.className += " active";
+    }
 
-.hover-image {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-top: 10px;
-    width: 300px; /* Adjust the size as needed */
-    border: 1px solid #ccc;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    z-index: 100;
-}
+    let tabIndex = <%= book.tabs.length %>; // Initialize tabIndex based on the number of existing tabs
 
-.hover-container:hover .hover-image {
-    display: block;
-}
-</style>
+    function addTab() {
+        const containerWrapper = document.getElementById('tabsContainerWrapper');
+
+        const newContainer = document.createElement('div');
+        newContainer.className = 'tabs-container';
+        newContainer.innerHTML = `
+            <div class="tabs-field">
+                <label>Chapter</label>
+                <input type="text" name="tabs[${tabIndex}][chapter]" class="chapter-field">
+            </div>
+            <div class="tabs-field">
+                <label>Page</label>
+                <input type="text" name="tabs[${tabIndex}][page]" class="page-field">
+            </div>
+        `;
+
+        containerWrapper.appendChild(newContainer);
+        tabIndex++;
+    }
+</script>

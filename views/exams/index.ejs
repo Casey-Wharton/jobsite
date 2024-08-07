@@ -7,28 +7,66 @@
         <label>Name</label>
         <input type="text" name="name" value="<%= searchOptions.name %>">
     </div>
+    <label>
+        <input type="checkbox" name="isComplete" value="true" <%= searchOptions.isComplete ? 'checked' : '' %>>Show only complete sets
+    </label>
+    <br>
     <button type="submit">Search</button>
 </form>
 
 <div class="grid-container">
     <% 
       exams.sort((a, b) => {
+        // First criteria: totalBooks === carriedBooks
+        if (a.totalBooks === a.carriedBooks && b.totalBooks !== b.carriedBooks) return -1;
+        if (a.totalBooks !== a.carriedBooks && b.totalBooks === b.carriedBooks) return 1; 
+  
+        // Second criteria: totalBooks !== 0
+        if (a.totalBooks !== 0 && b.totalBooks === 0) return -1;
+        if (a.totalBooks === 0 && b.totalBooks !== 0) return 1;
+  
+        // If both exams meet the same criteria, sort by name alphabetically
         if (a.name < b.name) return -1;
         if (a.name > b.name) return 1;
+  
+        // If all criteria are equal, return 0 (they are considered equal)
         return 0;
       });
       exams.forEach(exam => { 
+        let cardStyle
+        if((searchOptions.isComplete && exam.totalBooks === 0) || (searchOptions.isComplete && exam.totalBooks !== exam.carriedBooks)) {
+            cardStyle = "display:none;"
+        } else if(exam.totalBooks === 0) {
+            cardStyle = 'background-color: white;'
+        } else if(exam.totalBooks === exam.carriedBooks) {
+            cardStyle = 'background-color: #D4F1D4;'
+        } else {
+            cardStyle = 'background-color: #F3D4D4;'
+        }
     %>
-        <div class="card">
+        <div class="card" style="<%= cardStyle %>">
           <h2><%= exam.name %></h2>
-            <div>
-                <a href="/exams/<%= exam.id %>">View</a>
-                <a href="/exams/<%= exam.id %>/edit">Edit</a>  
+          <p>Books: <%= exam.totalBooks %></p>
+          <p>Carried: <%= exam.carriedBooks %></p>
+          <div>
+              <a href="/exams/<%= exam.id %>">View</a>
+              <a href="/exams/<%= exam.id %>/edit">Edit</a>  
           </div>
         </div>
     <% }) %>
-  </div>
+</div>
 
-  <style>
-    .exams-search {margin-bottom:8px;}
+<style>
+    .exams-search { margin-bottom: 8px; }
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+    }
+    .card {
+        border: 1px solid #ccc;
+        padding: 16px;
+        border-radius: 8px;
+        text-align: center;
+    }
 </style>

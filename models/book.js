@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+const tabSchema = new mongoose.Schema({
+    chapter: { type: String },
+    page: { type: String }
+});
+
 const bookSchema = new mongoose.Schema({
     title: {
         type: String,
@@ -33,7 +38,8 @@ const bookSchema = new mongoose.Schema({
     },
     isCarried: {
         type: Boolean
-    }
+    },
+    tabs: [tabSchema]
 });
 
 module.exports = mongoose.model('Book', bookSchema);

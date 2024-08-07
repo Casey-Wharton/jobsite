@@ -43,22 +43,37 @@ router.get('/new', async (req, res) => {
 // Create Book Route
 router.post('/', upload, async (req, res) => {
     let book;
-
     try {
-        const results = await s3Uploadv2(req.files)
+        const results = await s3Uploadv2(req.files);
         let pdfLink = '';
         let imageLink = '';
+
         results.forEach(item => {
             if (item === undefined) {
-                return;
-              }
+                throw new Error('File upload returned undefined item');
+            }
             const location = item.Location;
             if (location.endsWith('.pdf')) {
-              pdfLink = location;
+                pdfLink = location;
             } else {
-              imageLink = location;
+                imageLink = location;
             }
-          });
+        });
+
+        let tabsArray = [];
+        if (Array.isArray(req.body.tabs)) {
+            tabsArray = req.body.tabs.map(tab => ({
+                chapter: tab.chapter,
+                page: tab.page
+            }));
+        } else {
+            for (let key in req.body.tabs) {
+                tabsArray.push({
+                    chapter: req.body.tabs[key].chapter,
+                    page: req.body.tabs[key].page
+                });
+            }
+        }
 
         book = new Book({
             title: req.body.title,
@@ -68,26 +83,40 @@ router.post('/', upload, async (req, res) => {
             rackPosition: req.body.rackPosition,
             coverImage: imageLink,
             bookPDF: pdfLink,
-            isCarried: req.body.isCarried ? true : false
+            isCarried: req.body.isCarried ? true : false,
+            tabs: tabsArray
         });
-        const newBook = await book.save();
+
+        await book.save();
         res.redirect('books/');
     } catch (err) {
-        console.error(err);
+        console.error('Error creating book:', err);
+        renderNewPage(res, book, true);
     }
 });
+
 
 async function renderNewPage(res, book, hasError = false) {
     try {
         const params = {
-            book: book
+            book: book || new Book({
+                title: '',
+                isbn13: '',
+                rackUnit: '',
+                rackShelf: '',
+                rackPosition: '',
+                isCarried: false,
+                tabs: []
+            }),
+            errorMessage: hasError ? 'Error Creating Book' : null
         };
-        if (hasError) params.errorMessage = 'Error Creating Book';
         res.render('books/new', params);
-    } catch {
+    } catch (err) {
+        console.error('Error rendering new page:', err);
         res.redirect('/books');
     }
 }
+
 
 
 // View Individual Book Route
@@ -117,45 +146,70 @@ router.put('/:id', upload, async (req, res) => {
     let book;
 
     try {
-        const results = await s3Uploadv2(req.files)
+        const results = await s3Uploadv2(req.files);
         let pdfLink = '';
         let imageLink = '';
+
         results.forEach(item => {
             if (item === undefined) {
                 return;
-              }
+            }
             const location = item.Location;
             if (location.endsWith('.pdf')) {
-              pdfLink = location;
+                pdfLink = location;
             } else {
-              imageLink = location;
+                imageLink = location;
             }
-          });
-        book = await Book.findById(req.params.id)
-        book.title = req.body.title
+        });
+
+        book = await Book.findById(req.params.id);
+        book.title = req.body.title;
+        book.isbn13 = req.body.isbn13;
+        book.rackUnit = req.body.rackUnit;
+        book.rackShelf = req.body.rackShelf;
+        book.rackPosition = req.body.rackPosition;
+        book.isCarried = req.body.isCarried ? true : false;
+
         if (imageLink !== '') {
             book.coverImage = imageLink;
         }
         if (pdfLink !== '') {
             book.bookPDF = pdfLink;
         }
-        book.isCarried = req.body.isCarried ? true : false
-        book.isbn13 = req.body.isbn13
-        book.rackUnit = req.body.rackUnit
-        book.rackShelf = req.body.rackShelf
-        book.rackPosition = req.body.rackPosition
-        await book.save()
-        res.redirect(`/books`)
-    } catch {
+
+        // Process the tabs data
+        let tabsArray = [];
+        if (Array.isArray(req.body.tabs)) {
+            tabsArray = req.body.tabs.map(tab => ({
+                chapter: tab.chapter,
+                page: tab.page
+            }));
+        } else {
+            for (let key in req.body.tabs) {
+                tabsArray.push({
+                    chapter: req.body.tabs[key].chapter,
+                    page: req.body.tabs[key].page
+                });
+            }
+        }
+
+        // Update tabs
+        book.tabs = tabsArray;
+
+        await book.save();
+        res.redirect(`/books/${book.id}`);
+    } catch (err) {
+        console.error(err);
         if (book == null) {
-            res.redirect('/')
+            res.redirect('/');
         } else {
             res.render('books/edit', {
                 book: book,
-                errorMessage: "Error updating Book"
-            })
+                errorMessage: 'Error updating Book'
+            });
         }
     }
-})
+});
+
 
 module.exports = router;

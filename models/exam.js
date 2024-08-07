@@ -5,9 +5,13 @@ const examSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    books: {
-        type: mongoose.Schema.Types.ObjectId, ref: 'Book'
-    }
+    candidateBulletin: {
+        type: String
+    },
+    books: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Book'
+    }]
 });
 
 module.exports = mongoose.model('Exam', examSchema);
