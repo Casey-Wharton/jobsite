@@ -1,0 +1,56 @@
+<h4>Basic Information</h4>
+<form action="/booksets" method="POST">
+    <div class="create-book-fields">
+        <label>Name<span class="required">*</span></label>
+        <input type="text" name="name" value="<%= bookset.name %>">
+    </div>
+
+    <div class="create-book-fields">
+        <label>Search Exams</label>
+        <input type="text" id="exam-search" placeholder="Search exams...">
+    </div>
+
+    <div class="create-book-fields">
+        <label>Exams</label>
+        <div class="grid-container">
+            <% exams.sort((a, b) => a.name.localeCompare(b.name)).forEach(exam => { %>
+                <div class="exam-item">
+                    <input type="checkbox" name="exams" value="<%= exam.id %>" <%= bookset.exams && bookset.exams.includes(exam.id) ? 'checked' : '' %>>
+                    <span class="exam-name"><%= exam.name %></span>
+                </div>
+            <% }) %>
+        </div>
+    </div>
+    <p class="required">* = required field</p>
+    <button class="save-button" type="submit">Save</button>
+</form>
+
+<style>
+    .create-book-fields { padding-bottom: 12px; }
+    .required { font-size: 16px; color: red; }
+    .books-selected { border: 1px solid rgb(34, 34, 34); border-radius: 4px; background-color: rgb(161, 161, 161); min-height: 10vh; width: 50%; }
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+    }
+    .exam-item { display: flex; align-items: center; }
+    .exam-name { margin-left: 8px; font-size: 14px; }
+    .save-button {margin-bottom:16px;}
+</style>
+
+<script>
+document.getElementById('exam-search').addEventListener('input', function() {
+    let searchQuery = this.value.toLowerCase();
+    let examItems = document.querySelectorAll('.exam-item');
+    
+    examItems.forEach(function(item) {
+        let examName = item.querySelector('.exam-name').textContent.toLowerCase();
+        if (examName.includes(searchQuery)) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+});
+</script>

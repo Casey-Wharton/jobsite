@@ -185,3 +185,16 @@ height:100%;
     .tabs-field label {
         margin-bottom: 5px;
     }
+
+    .booksets-search { margin-bottom: 8px; }
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+    }
+    .card {
+        border: 1px solid #ccc;
+        padding: 16px;
+        border-radius: 8px;
+        text-align: center;
+    }

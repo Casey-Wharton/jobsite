@@ -1,1 +1,35 @@
 <h1 class="centered">All Booksets</h1>
+
+<a href="/booksets/new">Create New Bookset</a>
+<h3>Search Booksets</h3>
+<form action="/booksets" method="GET">
+    <div class="booksets-search">
+        <label>Name</label>
+        <input type="text" name="name" value="<%= searchOptions.name %>">
+    </div>
+    <br>
+    <button type="submit">Search</button>
+</form>
+
+<div class="grid-container">
+    <% 
+      booksets.sort((a, b) => {  
+        // If both exams meet the same criteria, sort by name alphabetically
+        if (a.name < b.name) return -1;
+        if (a.name > b.name) return 1;
+  
+        // If all criteria are equal, return 0 (they are considered equal)
+        return 0;
+      });
+
+      booksets.forEach(bookset => { 
+    %>
+        <div class="card">
+          <h2><%= bookset.name %></h2>
+          <div>
+              <a href="/booksets/<%= bookset.id %>">View</a>
+              <a href="/booksets/<%= bookset.id %>/edit">Edit</a>  
+          </div>
+        </div>
+        <% }) %>
+</div>

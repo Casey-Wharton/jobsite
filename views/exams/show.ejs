@@ -2,7 +2,7 @@
 <a href="/exams/<%= exam.id %>/edit">Edit</a>
 <br>
 <div class="view-exam-columns">
-    <embed src="https://candidate.psiexams.com/bulletin/display_bulletin.jsp?ro=yes&actionname=83&bulletinid=67&bulletinurl=.pdf" type="application/pdf" width="50%" height="600px" />
+    <div id="content-container" style="width: 50%; <% if(exam.candidateBulletin.endsWith('.pdf')) { %>height: 600px; <% } %>"></div>
     <div class="view-exam-books">
         <h3>Books:</h3>
         <% exam.books.sort((a, b) => a.title.localeCompare(b.title)).forEach(book => { %>
@@ -10,79 +10,29 @@
         <% }) %>
     </div>
 </div>
-<div class="background-div">
-    <h3 class="header"><%= exam.name %></h3>
-    <div class="book-container">
-        <% exam.books.forEach(book => { %>
-            <img src="<%= book.coverImage %>" alt="Book Cover">
-        <% }) %>
-    </div>
-</div>
 <style>
-        .background-div {
-            width: 700px;
-            height: 700px;
-            background-image: url('https://internalpage.s3.amazonaws.com/bookset+background.png');
-            background-size: cover;
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .book-container {
-            flex: 1;
-            display: grid;
-            gap: 10px;
-            overflow: hidden;
-        }
-        .book-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(2px 2px 5px rgba(0, 0, 0, 0.4));
-        }
     .view-exam-books {margin:24px;}
     .view-exam-columns {display:flex;}
 </style>
 
-    <script>
-        function calculateGrid() {
-            const container = document.querySelector('.book-container');
-            const items = container.children.length;
+<script>
+    // Get the exam.candidateBulletin value from server-side EJS
+    const candidateBulletin = "<%= exam.candidateBulletin %>";
 
-            const containerWidth = 700;
-            const containerHeight = 700 - document.querySelector('.header').offsetHeight - 50; // 20 for the padding + 40 extra for safety
+    // Get the content container
+    const contentContainer = document.getElementById('content-container');
 
-            // Calculate the number of columns and rows needed
-            let columns = Math.ceil(Math.sqrt(items));
-            let rows = Math.ceil(items / columns);
+    // Function to check if the URL is a PDF
+    function isPdfUrl(url) {
+        return url.endsWith('.pdf');
+    }
 
-            let gap = 10; // gap between cells
-            let totalGapWidth = (columns - 1) * gap;
-            let totalGapHeight = (rows - 1) * gap;
-
-            let availableWidth = containerWidth - totalGapWidth;
-            let availableHeight = containerHeight - totalGapHeight;
-
-            let cellWidth = availableWidth / columns;
-            let cellHeight = availableHeight / rows;
-
-            // Adjust rows to ensure they fit within the available height
-            while (cellHeight > availableHeight / rows) {
-                rows++;
-                totalGapHeight = (rows - 1) * gap;
-                cellHeight = (availableHeight - totalGapHeight) / rows;
-            }
-
-            // Set the grid template columns and rows
-            container.style.gridTemplateColumns = `repeat(${columns}, ${cellWidth}px)`;
-            container.style.gridTemplateRows = `repeat(${rows}, ${cellHeight}px)`;
-        }
-
-        window.addEventListener('DOMContentLoaded', calculateGrid);
-        window.addEventListener('resize', calculateGrid);
-    </script>
+    // Determine the content type and update the container
+    if (isPdfUrl(candidateBulletin)) {
+        // Render PDF using <embed>
+        contentContainer.innerHTML = `<embed src="${candidateBulletin}" type="application/pdf" width="100%" height="100%" />`;
+    } else {
+        // Render webpage using <iframe>
+        contentContainer.innerHTML = `<a href="${candidateBulletin}" target=_blank>Click here for Candidate Bulletin</a>`;
+    }
+</script>

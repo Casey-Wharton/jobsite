@@ -14,6 +14,7 @@ const userRouter = require('./routes/users');
 const bookRouter = require('./routes/books');
 const examRouter = require('./routes/exams');
 const publisherRouter = require('./routes/publishers');
+const booksetRouter = require('./routes/booksets');
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
@@ -37,5 +38,6 @@ app.use('/users', userRouter);
 app.use('/books', bookRouter);
 app.use('/exams', examRouter);
 app.use('/publishers', publisherRouter);
+app.use('/booksets', booksetRouter);
 
 app.listen(process.env.PORT || 3000);
