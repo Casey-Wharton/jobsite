@@ -15,6 +15,10 @@ const upload = multer({
     { name: 'bookPDF', maxCount: 1 }
 ]);
 
+router.get('/tabs', async (req, res) => {
+    res.render('partials/tabTemplate')
+})
+
 // All Books Route
 router.get('/', async (req, res) => {
     let query = Book.find()
@@ -23,6 +27,9 @@ router.get('/', async (req, res) => {
     }
     if (req.query.isCarried === 'true') {
         query = query.where('isCarried').equals(true);
+    }
+    if (req.query.hasTabs === 'true') {
+        query = query.where('tabs').equals(null)
     }
     try {
         const books = await query.exec()

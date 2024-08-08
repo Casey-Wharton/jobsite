@@ -68,6 +68,7 @@
                     <label>Page</label>
                     <input type="text" name="tabs[<%= index %>][page]" value="<%= tab.page %>" class="page-field">
                 </div>
+                <button type="button" class="remove-tab-btn" onclick="removeTab(this)">-</button>
             </div>
             <% }) %>
         </div>
@@ -110,9 +111,15 @@
                 <label>Page</label>
                 <input type="text" name="tabs[${tabIndex}][page]" class="page-field">
             </div>
+            <button type="button" class="remove-tab-btn" onclick="removeTab(this)">-</button>
         `;
 
         containerWrapper.appendChild(newContainer);
         tabIndex++;
+    }
+
+    function removeTab(button) {
+        const container = button.parentElement;
+        container.remove();
     }
 </script>

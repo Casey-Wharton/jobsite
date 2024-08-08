@@ -4,16 +4,21 @@
 
 <h3>Search Books</h3>
 <form class="books-search" action="/books" method="GET">
-    <div>
-        <label>Title</label>
-        <input type="text" name="title" value="<%= searchOptions.title %>">
-    </div>
-    <div>
-      <label>
-          <input type="checkbox" name="isCarried" value="true" <%= searchOptions.isCarried ? 'checked' : '' %>>Only include carried books <span>-------------INCLUDE OTHER FILTERS HERE LIKE "ONLY SHOW BOOKS WITH NO ISBN", ETC</span>
-      </label>
+  <div>
+    <label>Title</label>
+    <input type="text" name="title" value="<%= searchOptions.title %>">
   </div>
-    <button type="submit">Search</button>
+  <div>
+    <label>
+      <input type="checkbox" name="isCarried" value="true" <%= searchOptions.isCarried ? 'checked' : '' %>>Only include carried books
+    </label>
+  </div>
+  <div>
+    <label>
+      <input type="checkbox" name="hasTabs" value="true" <%= searchOptions.hasTabs ? 'checked' : '' %>>Missing Tabs
+    </label>
+  </div>
+  <button type="submit">Search</button>
 </form>
 <div class="grid-container">
   <% 
