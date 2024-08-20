@@ -1,4 +1,6 @@
 <h2><%= exam.name %></h2>
+<p>Last Checked: <%= formattedDate %></p>
+<form action="/exams/<%= exam.id %>/confirmed" method="POST"> <button type="submit">Update "Last Checked"</button> </form>
 <a href="/exams/<%= exam.id %>/edit">Edit</a>
 <br>
 <div class="view-exam-columns">
@@ -6,7 +8,7 @@
     <div class="view-exam-books">
         <h3>Books:</h3>
         <% exam.books.sort((a, b) => a.title.localeCompare(b.title)).forEach(book => { %>
-            <p><%= book.title %></p>
+            <a href="/books/<%= book.id %>"><%= book.title %></a><br>
         <% }) %>
     </div>
 </div>

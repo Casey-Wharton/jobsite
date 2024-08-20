@@ -27,9 +27,26 @@
         <div class="card">
           <h2><%= bookset.name %></h2>
           <div>
-              <a href="/booksets/<%= bookset.id %>">View</a>
-              <a href="/booksets/<%= bookset.id %>/edit">Edit</a>  
+              <a class="exam-links" href="/booksets/<%= bookset.id %>">View</a>
+              <a class="exam-links" href="/booksets/<%= bookset.id %>/edit">Edit</a>  
+              <a class="exam-links" href="/booksets/<%= bookset.id %>/tabs">Print Tabs</a>  
           </div>
         </div>
         <% }) %>
 </div>
+
+<style>
+  .exam-links {text-decoration:none;
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 16px;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  color: #fff;
+  background-color: #667ead;
+  border: none;
+  border-radius: 5px;
+  margin: 4px 0;
+}
+</style>

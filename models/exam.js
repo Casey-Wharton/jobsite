@@ -8,6 +8,9 @@ const examSchema = new mongoose.Schema({
     candidateBulletin: {
         type: String
     },
+    lastUpdated: {
+        type: Date
+    },
     books: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Book'

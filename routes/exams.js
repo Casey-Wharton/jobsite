@@ -54,13 +54,39 @@ router.post('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const exam = await Exam.findById(req.params.id).populate('books')
+        let formattedDate = 'Never Checked'; // Default message if never checked after initial creation
+
+        if (exam.lastUpdated) {
+            formattedDate = exam.lastUpdated.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            }).replace(/\//g, '-').replace(',', '');
+        }
+
+
         res.render('exams/show', {
-            exam: exam
+            exam: exam,
+            formattedDate: formattedDate
         })
-    } catch {
-        res.redirect('/exams')
+    } catch (err) {
+        console.log(err)
+        res.status(500).send("Error fetching the exam");
     }
 })
+
+// This is for the button that updates the "Last Updated" time, so you can see when the exam was last double-checked
+router.post('/:id/confirmed', async (req, res) => {
+    try {
+        await Exam.findByIdAndUpdate(req.params.id, { lastUpdated: Date.now() });
+        res.redirect(`/exams/${req.params.id}`);
+    } catch (err) {
+        res.status(500).send("Error updating the timestamp");
+    }
+});
 
 // Edit Individual Exam Route
 router.get('/:id/edit', async (req, res) => {

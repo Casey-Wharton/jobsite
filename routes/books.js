@@ -5,6 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const Book = require('../models/book');
 const s3Uploadv2 = require('./s3BookUploads');
+const Exam = require('../models/exam');
 
 const storage = multer.memoryStorage()
 
@@ -130,8 +131,10 @@ async function renderNewPage(res, book, hasError = false) {
 router.get('/:id', async (req, res) => {
     try {
         const book = await Book.findById(req.params.id)
+        const exam = await Exam.find({ books: req.params.id });
         res.render('books/show', {
-            book: book
+            book: book,
+            exam: exam
         })
     } catch {
         res.redirect('/books')

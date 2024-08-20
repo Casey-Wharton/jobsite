@@ -13,7 +13,6 @@
     <div>
         <h3>Bookset Image:</h3>
         <div class="background-div">
-            <h3 class="header"><%= bookset.name %></h3>
             <div class="book-container">
                 <% exams.forEach(exam => {
                     exam.books.forEach(book => { %>
@@ -59,41 +58,40 @@
     .view-exam-books {margin:24px;}
     .view-exam-columns {display:flex;}
 </style>
+<script>
+    function calculateGrid() {
+        const container = document.querySelector('.book-container');
+        const items = container.children.length;
 
-    <script>
-        function calculateGrid() {
-            const container = document.querySelector('.book-container');
-            const items = container.children.length;
+        const containerWidth = 680;
+        const containerHeight = 700 - 20; // 50 for extra padding
 
-            const containerWidth = 700;
-            const containerHeight = 700 - document.querySelector('.header').offsetHeight - 50; // 20 for the padding + 40 extra for safety
+        // Calculate the number of columns and rows needed
+        let columns = Math.ceil(Math.sqrt(items));
+        let rows = Math.ceil(items / columns);
 
-            // Calculate the number of columns and rows needed
-            let columns = Math.ceil(Math.sqrt(items));
-            let rows = Math.ceil(items / columns);
+        let gap = 10; // gap between cells
+        let totalGapWidth = (columns - 1) * gap;
+        let totalGapHeight = (rows - 1) * gap;
 
-            let gap = 10; // gap between cells
-            let totalGapWidth = (columns - 1) * gap;
-            let totalGapHeight = (rows - 1) * gap;
+        let availableWidth = containerWidth - totalGapWidth;
+        let availableHeight = containerHeight - totalGapHeight;
 
-            let availableWidth = containerWidth - totalGapWidth;
-            let availableHeight = containerHeight - totalGapHeight;
+        let cellWidth = availableWidth / columns;
+        let cellHeight = availableHeight / rows;
 
-            let cellWidth = availableWidth / columns;
-            let cellHeight = availableHeight / rows;
-
-            // Adjust rows to ensure they fit within the available height
-            while (cellHeight > availableHeight / rows) {
-                rows++;
-                totalGapHeight = (rows - 1) * gap;
-                cellHeight = (availableHeight - totalGapHeight) / rows;
-            }
-
-            // Set the grid template columns and rows
-            container.style.gridTemplateColumns = `repeat(${columns}, ${cellWidth}px)`;
-            container.style.gridTemplateRows = `repeat(${rows}, ${cellHeight}px)`;
+        // Adjust rows to ensure they fit within the available height
+        while (cellHeight > availableHeight / rows) {
+            rows++;
+            totalGapHeight = (rows - 1) * gap;
+            cellHeight = (availableHeight - totalGapHeight) / rows;
         }
 
-        window.addEventListener('DOMContentLoaded', calculateGrid);
-        window.addEventListener('resize', calculateGrid);
-    </script>
+        // Set the grid template columns and rows
+        container.style.gridTemplateColumns = `repeat(${columns}, ${cellWidth}px)`;
+        container.style.gridTemplateRows = `repeat(${rows}, ${cellHeight}px)`;
+    }
+
+    window.addEventListener('DOMContentLoaded', calculateGrid);
+    window.addEventListener('resize', calculateGrid);
+</script>

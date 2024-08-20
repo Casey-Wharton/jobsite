@@ -1,11 +1,15 @@
 <h2><%= book.title %></h2>
+<a href="/books/<%= book.id %>/edit">Edit</a><br>
 <img src="<%= book.coverImage %>" height=150rem/>
 <br>
 <% if(book.bookPDF) { %>
-    <embed src="<%= book.bookPDF %>" type="application/pdf" width=30% height="600">
+    <a href="<%= book.bookPDF %>" target="_blank">Click Here for Candidate Bulletin</a><br>
 <% } %>
-<a href="/books/<%= book.id %>/edit">Edit</a>
-
-<style>
-
-</style>
+<% if(exam && exam.length > 0) { %>
+    <h3>Exams That Use This Book</h3>
+<% } else { %>
+    <h3>Book is not attached to any exams yet</h3>
+<% } %>
+<% exam.sort((a, b) => a.name.localeCompare(b.name)).forEach(exam => { %>
+    <a href="/exams/<%= exam.id %>"><%= exam.name %></a><br>
+<% }) %>

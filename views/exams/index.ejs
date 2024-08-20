@@ -45,7 +45,7 @@
         }
     %>
         <div class="card" style="<%= cardStyle %>">
-          <h2><%= exam.name %></h2>
+          <h3><%= exam.name %></h3>
           <p>Books: <%= exam.totalBooks %></p>
           <p>Carried: <%= exam.carriedBooks %></p>
           <div>
@@ -60,7 +60,7 @@
     .exams-search { margin-bottom: 8px; }
     .grid-container {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(6, 1fr);
         gap: 10px;
     }
     .card {
