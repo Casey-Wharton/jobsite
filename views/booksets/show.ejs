@@ -14,49 +14,55 @@
         <h3>Bookset Image:</h3>
         <div class="background-div">
             <div class="book-container">
-                <% exams.forEach(exam => {
-                    exam.books.forEach(book => { %>
-                        <img src="<%= book.coverImage %>" alt="Book Cover">
-                    <% })
-                }) %>
+                <% let imageCount = 0;
+                exams.forEach(exam => {
+                    exam.books.forEach(book => { 
+                        imageCount++;%>
+                        <img class="book-image" src="<%= book.coverImage %>" alt="Book Cover">
+                    <% if(imageCount === completeRow) { 
+                        const emptyDivsCount = columns - (totalBooks - completeRow);
+                        Array.from({ length: emptyDivsCount }).forEach(() => { %>
+                            <div></div>
+                    <% }); 
+                    }});
+                }); %>
+    
+
             </div>
         </div>
     </div>
 </div>
 
-<style>
-.view-bookset-grid {display:flex;}
+<style id="custom-styles">
+.view-bookset-grid {
+    display:flex;
+}
 
-.view-bookset-cell {flex: 1;}
+.view-bookset-cell {
+    flex: 1;
+}
 
 .background-div {
-            width: 700px;
-            height: 700px;
-            background-image: url('https://internalpage.s3.amazonaws.com/bookset+background.png');
-            background-size: cover;
-            display: flex;
-            flex-direction: column;
-            padding: 10px;
-            box-sizing: border-box;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .book-container {
-            flex: 1;
-            display: grid;
-            gap: 10px;
-            overflow: hidden;
-        }
-        .book-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            filter: drop-shadow(2px 2px 5px rgba(0, 0, 0, 0.4));
-        }
-    .view-exam-books {margin:24px;}
-    .view-exam-columns {display:flex;}
+    width: 700px;
+    height: 700px;
+    background-image: url('https://internalpage.s3.amazonaws.com/bookset+background.png');
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    box-sizing: border-box;
+}
+.book-container {
+    display: grid;
+    gap: 10px;
+}
+.book-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    grid-column: span 2;
+    filter: drop-shadow(2px 2px 5px rgba(0, 0, 0, 0.4));
+}
 </style>
 <script>
     function calculateGrid() {
@@ -67,8 +73,8 @@
         const containerHeight = 700 - 20; // 50 for extra padding
 
         // Calculate the number of columns and rows needed
-        let columns = Math.ceil(Math.sqrt(items));
-        let rows = Math.ceil(items / columns);
+        let columns = Math.ceil(Math.sqrt(items))*2;
+        let rows = Math.ceil(items / (columns / 2));
 
         let gap = 10; // gap between cells
         let totalGapWidth = (columns - 1) * gap;
@@ -90,8 +96,7 @@
         // Set the grid template columns and rows
         container.style.gridTemplateColumns = `repeat(${columns}, ${cellWidth}px)`;
         container.style.gridTemplateRows = `repeat(${rows}, ${cellHeight}px)`;
-    }
-
+}
     window.addEventListener('DOMContentLoaded', calculateGrid);
     window.addEventListener('resize', calculateGrid);
 </script>

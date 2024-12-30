@@ -1,0 +1,301 @@
+<div style="display: flex; height: calc(100vh - 78px); overflow: hidden;">
+  <!-- Left Menu -->
+  <div class="left-menu">
+    <h2>Navigation</h2>
+    <ul>
+      <li>
+        <a href="#" onclick="showSection(event, 'license-info')" class="menu-link active">License Info</a>
+      </li>
+      <li>
+        <a href="#" onclick="showSection(event, 'application-info')" class="menu-link">Application Info</a>
+      </li>
+      <li>
+        <a href="#" onclick="showSection(event, 'exam-info')" class="menu-link">Exam Info</a>
+      </li>
+      <li>
+        <a href="#" onclick="showSection(event, 'course-info')" class="menu-link">Course Info</a>
+      </li>
+      <li>
+        <a href="#" onclick="showSection(event, 'product-info')" class="menu-link">Product Info</a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Content Area -->
+  <div class="content-area">
+    <!-- Main Content -->
+    <div class="main-content">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1><%= license.License %> in <%= state %></h1>
+        <a href="/phone-script/<%= encodeURIComponent(state) %>/" class="back-button">Back to State Page</a>
+      </div>
+
+      <!-- License Info Section -->
+      <div id="license-info" class="content-section">
+        <div class="section-box red">
+          <h2>License Info</h2>
+          <ul>
+            <!-- No dynamically attached fields -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Application Info Section -->
+      <div id="application-info" class="content-section" style="display: none;">
+        <div class="section-box yellow">
+          <h2>Application Info</h2>
+          <ul>
+            <!-- No dynamically attached fields -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Exam Info Section -->
+      <div id="exam-info" class="content-section" style="display: none;">
+        <div class="section-box blue">
+          <h2>Exam Info</h2>
+          <ul>
+            <!-- No dynamically attached fields -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Course Info Section -->
+      <div id="course-info" class="content-section" style="display: none;">
+        <div class="section-box">
+          <h2>Course Info</h2>
+          <ul>
+            <!-- No dynamically attached fields -->
+          </ul>
+        </div>
+      </div>
+
+      <!-- Product Info Section -->
+      <div id="product-info" class="content-section" style="display: none;">
+        <div class="section-box">
+          <h2>Product Info</h2>
+          <ul>
+            <!-- No dynamically attached fields -->
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+      <h3>Intake Form</h3>
+      <div class="form-fields">
+        <label>
+          <span>First Name</span>
+          <input type="text">
+        </label>
+        <label>
+          <span>Last Name</span>
+          <input type="text">
+        </label>
+        <label>
+          <span>Email</span>
+          <input type="email">
+        </label>
+        <label>
+          <span>Phone Number</span>
+          <input type="tel">
+        </label>
+        <button>Submit</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+  function showSection(event, sectionId) {
+    // Prevent default anchor behavior
+    event.preventDefault();
+
+    // Hide all content sections
+    document.querySelectorAll('.content-section').forEach(section => {
+      section.style.display = 'none';
+    });
+
+    // Show the selected section
+    document.getElementById(sectionId).style.display = 'block';
+
+    // Remove active styling from all menu links
+    document.querySelectorAll('.menu-link').forEach(link => {
+      link.classList.remove('active');
+    });
+
+    // Highlight the active menu link
+    event.target.classList.add('active');
+  }
+
+  // Default to showing the License Info section
+  document.addEventListener('DOMContentLoaded', () => {
+    showSection(new Event('DOMContentLoaded'), 'license-info');
+  });
+</script>
+
+<style>
+  /* Back to State Page Button */
+.back-button {
+  padding: 10px 20px;
+  background-color: #007BFF;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.back-button:hover {
+  background-color: #0056b3;
+}
+
+main {
+  width: 100%;
+  padding: 0;
+}
+
+/* Styles for the Left Menu */
+.left-menu {
+  flex: 0 0 15%;
+  max-width: 300px;
+  min-width: 200px;
+  background-color: #e6e9f1;
+  border-right: 2px solid #caced6;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  height: 100%;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.left-menu h2 {
+  margin-top: 0;
+  font-size: 1.5em;
+  text-align: center;
+  border-bottom: 2px solid #caced6;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.left-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.left-menu li {
+  margin-bottom: 10px;
+}
+
+.left-menu .menu-link {
+  text-decoration: none;
+  color: #007BFF;
+  padding: 10px 15px;
+  border-radius: 5px;
+  display: block;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.left-menu .menu-link.active {
+  color: #fff;
+  background-color: #007BFF;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Content Area Styles */
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.section-box {
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.section-box.yellow {
+  background-color: #fffbea;
+}
+
+.section-box.blue {
+  background-color: #eaf7ff;
+}
+
+.section-box.red {
+  background-color: #ffeaea;
+}
+
+/* Bottom Bar Styles */
+.bottom-bar {
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+  padding: 15px 20px;
+  border-top: 1px solid #ddd;
+  gap: 15px;
+}
+
+.bottom-bar h3 {
+  margin: 0;
+  font-size: 1.25em;
+  color: #333;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+}
+
+.form-fields {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.form-fields label {
+  flex: 1;
+}
+
+.form-fields label span {
+  display: block;
+  margin-bottom: 5px;
+}
+
+.form-fields input {
+  width: 100%;
+  height: 40px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+  margin: 0;
+  font-size: 14px;
+}
+
+.form-fields button {
+  padding: 0;
+  background-color: #949494;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 110px;
+  height: 40px;
+  font-size: 14px;
+}
+</style>

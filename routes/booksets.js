@@ -92,9 +92,20 @@ router.get('/:id', async (req, res) => {
         const bookset = await Bookset.findById(req.params.id).populate('exams')
         const examIds = bookset.exams.map(exam => exam.id);
         const exams = await Exam.find({ _id: { $in: examIds } }).populate('books');
+        let totalBooks = 0;
+        exams.forEach(exam => {
+            totalBooks = totalBooks + exam.books.length
+        });
+        const columns = Math.ceil(Math.sqrt(totalBooks));
+        const rows = Math.ceil(totalBooks / columns);
+        const completeRow = ((columns * rows) !== totalBooks) ? (columns * rows) - columns : 0
+
         res.render('booksets/show', {
             bookset: bookset,
-            exams: exams
+            exams: exams,
+            totalBooks: totalBooks,
+            completeRow: completeRow,
+            columns: columns       
         })
     } catch {
         res.redirect('/booksets')
