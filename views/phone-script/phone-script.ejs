@@ -2,21 +2,23 @@
     <!-- Main content -->
     <div class="main-content">
         <h2>Pick a State</h2>
-                <!-- Legend -->
-                <div class="legend">
+        
+        <!-- Legend -->
+        <div class="legend">
+            <div class="legend-items">
+                <span class="legend-item">
+                    <span class="symbol electrical">🗲</span>
+                    <span class="legend-text">= NASCLA Electrical</span>
+                </span>
+                <span class="legend-item">
+                    <span class="symbol builder">🔨</span>
+                    <span class="legend-text">= NASCLA Commercial Builder</span>
+                </span>
+            </div>
+            <hr class="legend-divider">
+        </div>
 
-                    <div class="legend-items">
-                        <span class="legend-item">
-                            <span class="symbol electrical">🗲</span>
-                            <span class="legend-text">= NASCLA Electrical</span>
-                        </span>
-                        <span class="legend-item">
-                            <span class="symbol builder">🔨</span>
-                            <span class="legend-text">= NASCLA Commercial Builder</span>
-                        </span>
-                    </div>
-                    <hr class="legend-divider">
-                </div>
+        <!-- State List -->
         <ul>
             <% records.forEach(record => { %>
                 <li>
