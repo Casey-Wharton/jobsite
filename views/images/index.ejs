@@ -1,0 +1,8 @@
+<h2>Booksets</h2>
+<ul>
+    <% booksets.forEach(bookset => { %>
+        <li>
+            <a href="/images/<%= bookset.id %>"><%= bookset.name %></a>
+        </li>
+    <% }) %>
+</ul>

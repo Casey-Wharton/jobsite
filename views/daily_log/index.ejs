@@ -1,0 +1,237 @@
+<div class="container">
+  <div class="content">
+    <!-- Log section (two-thirds of the screen) -->
+    <div class="log-section">
+      <div id="log-container">
+        <% if (logs.length === 0) { %>
+          <p>No tasks found.</p>
+        <% } else { %>
+          <% logs.forEach(log => { %>
+            <div class="log-entry" data-date="<%= log.date %>">
+              <div class="log-date"><%= log.date %></div>
+              <ul class="task-list">
+                <% log.tasks.forEach((task, index) => { %>
+                  <li class="task-item">
+                    <div class="task-content">
+                      <span class="bullet">•</span>
+                      <span class="task-text"><%= task %></span>
+                    </div>
+                    <form action="/logs/delete" method="POST" onsubmit="event.preventDefault(); debounceDelete(this)">
+                      <input type="hidden" name="date" value="<%= log.date %>">
+                      <input type="hidden" name="taskIndex" value="<%= index %>">
+                      <button type="submit" class="delete-button">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                        </svg>
+                      </button>
+                    </form>
+                  </li>
+                <% }) %>
+              </ul>
+            </div>
+          <% }) %>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- Right-side menu (one-third of the screen) -->
+    <div class="right-menu">
+      <h3>Filter Logs</h3>
+      <div class="filter-field">
+        <label for="searchInput">Search by keyword:</label>
+        <input type="text" id="searchInput" placeholder="Type to search...">
+      </div>
+
+      <div class="filter-field">
+        <label for="dateInput">Filter by date:</label>
+        <div class="date-filter">
+          <input type="date" id="dateInput">
+          <button onclick="clearDate()" class="clear-btn">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input container (bottom) -->
+  <div class="input-container">
+    <form action="/logs" method="POST" onsubmit="return validateInput()">
+      <input type="text" id="taskInput" name="task" placeholder="Add new completed task">
+      <button type="submit" class="add-btn">Add</button>
+    </form>
+  </div>
+</div>
+
+<style>
+  .container {
+    display: flex;
+    flex-direction: column;
+    max-height: 785px;
+    overflow: hidden;
+  }
+
+  .content {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .log-section {
+    flex: 2;
+    padding: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #log-container {
+    margin-top: 20px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  .log-entry {
+    background: #fff;
+    padding: 15px;
+    margin: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+  }
+
+  .log-date {
+    font-weight: bold;
+    text-align: center;
+  }
+
+  .task-list {
+    text-align: left;
+    padding-left: 20px;
+  }
+
+  .task-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 5px;
+  }
+
+  .task-content {
+    display: flex;
+    align-items: center;
+  }
+
+  .bullet {
+    font-size: 18px;
+    margin-right: 8px;
+  }
+
+  .right-menu {
+    flex: 1;
+    padding: 20px;
+    background: #f4f4f4;
+    border-left: 1px solid #ddd;
+    box-sizing: border-box;
+    margin: 20px 0;
+  }
+
+  .filter-field {
+    margin-bottom: 20px;
+  }
+
+  .date-filter {
+    display: flex;
+    gap: 10px;
+  }
+
+  #searchInput,
+  #dateInput {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
+  }
+
+  .clear-btn {
+    padding: 10px;
+    cursor: pointer;
+  }
+
+  .input-container {
+    display: flex;
+    padding: 20px;
+    background: #eee;
+    width: calc(100% - 20px);
+    align-self: center;
+  }
+
+  .input-container input {
+    width:41vw;
+  }
+
+  #taskInput {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .add-btn {
+    padding: 10px;
+    font-size: 16px;
+  }
+
+  .delete-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  .delete-button svg {
+    width: 16px;
+    height: 16px;
+    color: red;
+  }
+</style>
+
+<script>
+  function clearDate() {
+    document.getElementById('dateInput').value = '';
+    document.getElementById('dateInput').dispatchEvent(new Event('change'));
+  }
+
+  function validateInput() {
+    const input = document.getElementById('taskInput').value.trim();
+    return input !== '';
+  }
+
+  document.getElementById('searchInput').addEventListener('input', function () {
+    let searchQuery = this.value.toLowerCase();
+    let logEntries = document.querySelectorAll('.log-entry');
+
+    logEntries.forEach(function (entry) {
+      let tasks = entry.querySelectorAll('.task-item');
+      let matchFound = false;
+
+      tasks.forEach(function (task) {
+        let taskText = task.querySelector('.task-text').textContent.toLowerCase();
+        if (taskText.includes(searchQuery)) {
+          task.style.display = 'flex';
+          matchFound = true;
+        } else {
+          task.style.display = 'none';
+        }
+      });
+
+      entry.style.display = matchFound ? 'block' : 'none';
+    });
+  });
+
+  let deleteTimeout;
+
+  function debounceDelete(formElement) {
+    if (deleteTimeout) {
+      clearTimeout(deleteTimeout);
+    }
+    deleteTimeout = setTimeout(() => {
+      formElement.submit();
+    }, 500);
+  }
+</script>

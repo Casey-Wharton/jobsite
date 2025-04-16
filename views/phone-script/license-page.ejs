@@ -2,6 +2,19 @@
   <!-- Left Menu -->
   <div class="left-menu">
     <h2>Navigation</h2>
+
+    <!-- Dropdown for Exam Fields -->
+    <% if (sectionData.dropdownOptions.length > 1) { %>
+      <div class="exam-switch">
+        <label for="exam-dropdown">Switch Exams:</label>
+        <select id="exam-dropdown" onchange="switchExamDropdown()">
+          <% sectionData.dropdownOptions.forEach((option, index) => { %>
+            <option value="<%= index %>"><%= option.name %></option>
+          <% }); %>
+        </select>
+      </div>
+    <% } %>
+
     <ul>
       <li><a href="#" onclick="showSection(event, 'license-info')" class="menu-link active">License Info</a></li>
       <li><a href="#" onclick="showSection(event, 'application-info')" class="menu-link">Application Info</a></li>
@@ -13,11 +26,18 @@
 
   <!-- Content Area -->
   <div class="content-area">
-    <!-- Main Content -->
     <div class="main-content">
       <div style="display: flex; justify-content: space-between; align-items: center;">
-        <h1><%= license.License %></h1>
+        <h1 id="license-title"><%= license.License %></h1>
         <a href="/phone-script/<%= encodeURIComponent(state) %>/" class="back-button">Back to State Page</a>
+      </div>
+      <div class="title-exam-list">
+        <span>Exams Used: </span>
+        <span id="exam-names">
+          <%= sectionData.dropdownOptions.length > 0
+            ? sectionData.dropdownOptions[0].exams.map(exam => exam.name).join(', ')
+            : 'No exams available' %>
+        </span>
       </div>
 
       <!-- License Info Section -->
@@ -25,10 +45,18 @@
         <div class="section-box">
           <div class="grid-container">
             <% sectionData.licenseInfo.forEach(item => { %>
-              <div class="grid-item">
-                <div class="field-title"><%= item.field %></div>
-                <div class="field-value"><%= item.value %></div>
-              </div>
+              <% if (item.value) { %> <!-- Render only if there is a value -->
+                <div class="grid-item">
+                  <div class="field-title"><%= item.field %></div>
+                  <div class="field-value">
+                    <% if (typeof item.value === 'string' && item.value.startsWith('https:')) { %>
+                      <a href="<%= item.value %>" target="_blank" rel="noopener noreferrer">Click Here</a>
+                    <% } else { %>
+                      <%= item.value %>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
             <% }); %>
           </div>
         </div>
@@ -39,10 +67,18 @@
         <div class="section-box">
           <div class="grid-container">
             <% sectionData.applicationInfo.forEach(item => { %>
-              <div class="grid-item">
-                <div class="field-title"><%= item.field %></div>
-                <div class="field-value"><%= item.value %></div>
-              </div>
+              <% if (item.value) { %> <!-- Render only if there is a value -->
+                <div class="grid-item">
+                  <div class="field-title"><%= item.field %></div>
+                  <div class="field-value">
+                    <% if (typeof item.value === 'string' && item.value.startsWith('https:')) { %>
+                      <a href="<%= item.value %>" target="_blank" rel="noopener noreferrer">Click Here</a>
+                    <% } else { %>
+                      <%= item.value %>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
             <% }); %>
           </div>
         </div>
@@ -52,43 +88,88 @@
       <div id="exam-info" class="content-section" style="display: none;">
         <div class="section-box">
           <select id="exam-toggle" class="section-toggle" onchange="updateExamSection()">
-            <% sectionData.examOptions.forEach((exam, index) => { %>
+            <% sectionData.dropdownOptions[0].exams.forEach((exam, index) => { %>
               <option value="<%= index %>"><%= exam.name %></option>
             <% }); %>
           </select>
           <div id="exam-grid" class="grid-container">
-            <!-- Exam fields dynamically updated via JavaScript -->
+            <% sectionFields.examInfo.forEach(field => { %>
+              <% const fieldValue = sectionData.dropdownOptions[0]?.exams[0]?.fields[field.field]; %>
+              <% if (fieldValue) { %>
+                <div class="grid-item">
+                  <div class="field-title"><%= field.field %></div>
+                  <div class="field-value">
+                    <% if (typeof fieldValue === 'string' && fieldValue.startsWith('https:')) { %>
+                      <a href="<%= fieldValue %>" target="_blank" rel="noopener noreferrer">Click Here</a>
+                    <% } else { %>
+                      <%= fieldValue %>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
+            <% }); %>
           </div>
         </div>
+              <!-- Test Center Locations Section -->
+      <% if (testCenterLocation) { %>
+        <div class="test-center-section">
+          <h2><%=state %> <%=testCenter %> Test Center Locations</h2>
+          <p><%= testCenterLocation %></p>
+        </div>
+      <% } %>
       </div>
+
+
+
 
       <!-- Course Info Section -->
       <div id="course-info" class="content-section" style="display: none;">
         <div class="section-box">
           <select id="course-toggle" class="section-toggle" onchange="updateCourseSection()">
-            <% sectionData.examOptions.forEach((exam, index) => { %>
+            <% sectionData.dropdownOptions[0].exams.forEach((exam, index) => { %>
               <option value="<%= index %>"><%= exam.name %></option>
             <% }); %>
           </select>
           <div id="course-grid" class="grid-container">
-            <!-- Course fields dynamically updated via JavaScript -->
-          </div>
-        </div>
-      </div>
-
-      <!-- Product Info Section -->
-      <div id="product-info" class="content-section" style="display: none;">
-        <div class="section-box">
-          <div class="grid-container">
-            <% sectionData.productInfo.forEach(item => { %>
-              <div class="grid-item">
-                <div class="field-title"><%= item.field %></div>
-                <div class="field-value"><%= item.value %></div>
-              </div>
+            <% sectionFields.courseInfo.forEach(field => { %>
+              <% const fieldValue = sectionData.dropdownOptions[0]?.exams[0]?.fields[field.field]; %>
+              <% if (fieldValue) { %> <!-- Render only if there is a value -->
+                <div class="grid-item">
+                  <div class="field-title"><%= field.field %></div>
+                  <div class="field-value">
+                    <% if (typeof fieldValue === 'string' && fieldValue.startsWith('https:')) { %>
+                      <a href="<%= fieldValue %>" target="_blank" rel="noopener noreferrer">Click Here</a>
+                    <% } else { %>
+                      <%= fieldValue %>
+                    <% } %>
+                  </div>
+                </div>
+              <% } %>
             <% }); %>
           </div>
         </div>
       </div>
+      
+<!-- Product Info Section -->
+<div id="product-info" class="content-section" style="display: none;">
+  <div class="section-box">
+    <div id="product-grid" class="grid-container">
+      <% sectionData.productInfo[0].fields.forEach(field => { %>
+        <div class="grid-item">
+          <div class="field-title"><%= field.field %></div>
+          <div class="field-value">
+            <% if (typeof field.value === 'string' && field.value.startsWith('https:')) { %>
+              <a href="<%= field.value %>" target="_blank" rel="noopener noreferrer">Click Here</a>
+            <% } else { %>
+              <%= field.value %>
+            <% } %>
+          </div>
+        </div>
+      <% }); %>
+    </div>
+  </div>
+</div>
+
     </div>
   </div>
 </div>
@@ -96,50 +177,215 @@
 <script>
   function showSection(event, sectionId) {
     event.preventDefault();
+
+    // Hide all content sections
     document.querySelectorAll('.content-section').forEach(section => {
       section.style.display = 'none';
     });
-    document.getElementById(sectionId).style.display = 'block';
+
+    // Show the targeted section
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+      targetSection.style.display = 'block';
+    }
+
+    // Remove 'active' class from all links
     document.querySelectorAll('.menu-link').forEach(link => {
       link.classList.remove('active');
     });
-    event.target.classList.add('active');
+
+    // Add 'active' class to the clicked link
+    const clickedLink = event.currentTarget;
+    clickedLink.classList.add('active');
   }
 
-  const examData = <%- JSON.stringify(sectionData.examOptions) %>;
+function updateLicenseTitle() {
+    const examDropdown = document.getElementById('exam-dropdown');
+    const selectedOptionIndex = examDropdown ? examDropdown.value : 0;
+    const dropdownOptions = <%- JSON.stringify(sectionData.dropdownOptions) %>;
+    const selectedOption = dropdownOptions[selectedOptionIndex] || { exams: [] };
+
+    const examNames = selectedOption.exams.map(exam => exam.name).join(', ') || 'No exams';
+    const examNamesElement = document.getElementById('exam-names');
+
+    if (examNamesElement) {
+      examNamesElement.textContent = examNames;
+    }
+  }
+
+  function switchExamDropdown() {
+  const dropdown = document.getElementById('exam-dropdown');
+  const selectedIndex = dropdown.value;
+  const dropdownOptions = <%- JSON.stringify(sectionData.dropdownOptions) %>;
+  const selectedOption = dropdownOptions[selectedIndex] || { exams: [] };
+
   const sectionFields = <%- JSON.stringify(sectionFields) %>;
 
-  function updateExamSection() {
-    const selectedIndex = document.getElementById('exam-toggle').value;
-    const selectedExam = examData[selectedIndex];
-    const examGrid = document.getElementById('exam-grid');
-    examGrid.innerHTML = sectionFields.examInfo.map(field => `
+  // Update Exam Info and Course Info sections
+  updateSectionGrid('exam-grid', sectionFields.examInfo, selectedOption.exams);
+  updateSectionGrid('course-grid', sectionFields.courseInfo, selectedOption.exams);
+
+  // Update Product Info section
+  const productGrid = document.getElementById('product-grid');
+  const productInfo = <%- JSON.stringify(sectionData.productInfo) %>;
+  if (productGrid && productInfo[selectedIndex]) {
+    productGrid.innerHTML = productInfo[selectedIndex].fields.map(field => `
       <div class="grid-item">
         <div class="field-title">${field.field}</div>
-        <div class="field-value">${selectedExam.fields[field.field] || 'N/A'}</div>
+        <div class="field-value">
+          ${
+            typeof field.value === 'string' && field.value.startsWith('https:')
+              ? `<a href="${field.value}" target="_blank" rel="noopener noreferrer">Click Here</a>`
+              : field.value
+          }
+        </div>
       </div>
     `).join('');
+  }
+
+  // Update Exam Info and Course Info toggles
+  updateToggles('exam-toggle', selectedOption.exams);
+  updateToggles('course-toggle', selectedOption.exams);
+
+  // Update the license title to reflect the selected exams
+  updateLicenseTitle();
+}
+
+
+  function updateToggles(toggleId, exams) {
+    const toggle = document.getElementById(toggleId);
+    if (toggle) {
+      toggle.innerHTML = exams.length
+        ? exams.map((exam, index) => `
+          <option value="${index}">${exam.name}</option>
+        `).join('')
+        : '<option value="0">No exams available</option>';
+    }
+  }
+
+  function updateSectionGrid(gridId, fields, exams) {
+  const grid = document.getElementById(gridId);
+  if (grid) {
+    grid.innerHTML = exams.length
+      ? fields.map(field => {
+          let fieldValue = exams[0].fields[field.field]; // Extract field value
+
+          // Special logic for "Books" and "Allowed Into the Exam"
+          if ((field.field === 'Books' || field.field === 'Allowed Into the Exam') && Array.isArray(fieldValue)) {
+            const booksArray = fieldValue[0].split(', ');
+            const totalBooks = booksArray.length;
+            fieldValue = `<u>Total Books: ${totalBooks}</u><br><br>` +
+              booksArray.map((book, index) => `${index + 1}. ${book}`).join('<br>');
+          } else if (field.field === 'Allowed Into the Exam' && !fieldValue) {
+            fieldValue = 'All books allowed in';
+          }
+
+          // Skip rendering for undefined, null, or empty fields (except for special cases above)
+          if (fieldValue === undefined || fieldValue === null || fieldValue === '') {
+            return '';
+          }
+
+          // Check if the value is a URL
+          const isURL = typeof fieldValue === 'string' && fieldValue.startsWith('https:');
+
+          // Return the field HTML
+          return `
+            <div class="grid-item">
+              <div class="field-title">${field.field}</div>
+              <div class="field-value">
+                ${isURL
+                  ? `<a href="${fieldValue}" target="_blank" rel="noopener noreferrer">Click Here</a>`
+                  : fieldValue
+                }
+              </div>
+            </div>
+          `;
+        }).join('')
+      : '<div>No data available for this section.</div>';
+  }
+}
+
+
+  function initializeSections() {
+    const dropdownOptions = <%- JSON.stringify(sectionData.dropdownOptions) %>;
+    const defaultOption = dropdownOptions.length > 0 ? dropdownOptions[0] : { exams: [] };
+    const sectionFields = <%- JSON.stringify(sectionFields) %>;
+
+    // Initialize Exam Info and Course Info sections
+    updateSectionGrid('exam-grid', sectionFields.examInfo, defaultOption.exams);
+    updateSectionGrid('course-grid', sectionFields.courseInfo, defaultOption.exams);
+
+    // Initialize Exam and Course Toggles
+    updateToggles('exam-toggle', defaultOption.exams);
+    updateToggles('course-toggle', defaultOption.exams);
+  }
+
+  function updateExamSection() {
+    const examToggle = document.getElementById('exam-toggle');
+    const examDropdown = document.getElementById('exam-dropdown');
+    const selectedIndex = examToggle ? examToggle.value : 0;
+    const dropdownIndex = examDropdown ? examDropdown.value : 0;
+
+    const dropdownOptions = <%- JSON.stringify(sectionData.dropdownOptions) %>;
+    const examData = dropdownOptions[dropdownIndex]?.exams || [];
+    const selectedExam = examData[selectedIndex];
+    const sectionFields = <%- JSON.stringify(sectionFields) %>;
+
+    updateSectionGrid('exam-grid', sectionFields.examInfo, [selectedExam]);
   }
 
   function updateCourseSection() {
-    const selectedIndex = document.getElementById('course-toggle').value;
-    const selectedExam = examData[selectedIndex];
-    const courseGrid = document.getElementById('course-grid');
-    courseGrid.innerHTML = sectionFields.courseInfo.map(field => `
-      <div class="grid-item">
-        <div class="field-title">${field.field}</div>
-        <div class="field-value">${selectedExam.fields[field.field] || 'N/A'}</div>
-      </div>
-    `).join('');
+    const courseToggle = document.getElementById('course-toggle');
+    const examDropdown = document.getElementById('exam-dropdown');
+    const selectedIndex = courseToggle ? courseToggle.value : 0;
+    const dropdownIndex = examDropdown ? examDropdown.value : 0;
+
+    const dropdownOptions = <%- JSON.stringify(sectionData.dropdownOptions) %>;
+    const courseData = dropdownOptions[dropdownIndex]?.exams || [];
+    const selectedExam = courseData[selectedIndex];
+    const sectionFields = <%- JSON.stringify(sectionFields) %>;
+
+    updateSectionGrid('course-grid', sectionFields.courseInfo, [selectedExam]);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    updateExamSection();
-    updateCourseSection();
+    initializeSections(); // Initialize all grids and toggles
+    updateLicenseTitle(); // Set the license title correctly
   });
 </script>
 
+
 <style>
+    .test-center-section {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+  }
+
+  .test-center-section h2 {
+    margin: 0 0 10px;
+    font-size: 20px;
+    font-weight: bold;
+  }
+
+  .test-center-section p {
+    font-size: 16px;
+    color: #333;
+  }
+
+  .title-exam-list {
+    font-size: 18px;
+    color:#525252;
+
+    padding-bottom:12px;
+  }
+
+  .exam-switch {
+    padding-bottom:12px;
+  }
+
   .section-toggle {
     margin-bottom: 20px;
     padding: 10px;

@@ -1,10 +1,30 @@
 <h1 class="page-title"><%= state %> Licenses</h1>
 
+<!-- Top Section: State Sales Page and General State Information -->
+<div class="top-section">
+    <% if (stateSalesPage) { %>
+        <div class="state-sales-page">
+            <h2>Link to <%= state %> Sales Page</h2>
+            <p>This link will take you to the MCL website. This is a complete catalog of all products for the state.</p>
+            <p>
+                <a href="<%= stateSalesPage %>" target="_blank" rel="noopener noreferrer">
+                    Visit State Sales Page
+                </a>
+            </p>
+        </div>
+    <% } %>
+
+    <div class="general-state-info">
+        <h2>General State Information</h2>
+        <div><%- generalStateInfo %></div>
+    </div>
+</div>
+
 <!-- Legend and Filter Bar -->
 <div class="legend-filter-bar">
-    <!-- License Type Filter -->
+    <p style="margin:0;">Use these filters to find specific licenses.</p>
     <div class="license-type-filter">
-        <label>Only show:</label>
+        <label>Type of Work:</label>
         <% const uniqueLicenseTypes = [...new Set(licenses.flatMap(license => license.licenseTypes))]; %>
         <% uniqueLicenseTypes.forEach(type => { %>
             <label class="filter-option">
@@ -13,67 +33,34 @@
             </label>
         <% }) %>
     </div>
-    <div class="legend">
-        <div class="legend-items">
-            <span class="legend-item">
-                <span class="symbol electrical">🗲</span>
-                <span class="legend-text">= NASCLA Electrical</span>
-            </span>
-            <span class="legend-item">
-                <span class="symbol builder">🔨</span>
-                <span class="legend-text">= NASCLA Builder</span>
-            </span>
-        </div>
-    </div>
 </div>
 
-<div class="license-layout">
-    <!-- Left: License List -->
-    <div class="license-list">
-        <% if (licenses && licenses.length > 0) { %>
-            <ul id="license-list">
-                <% licenses.forEach(license => { %>
-                    <li class="license-item" data-license-types="<%= license.licenseTypes.join(', ') %>">
-                        <a 
-                            class="license-link" 
-                            href="/phone-script/<%= encodeURIComponent(state) %>/<%= encodeURIComponent(license.name) %>" 
-                            data-license-types="<%= license.licenseTypes.join(', ') %>" 
-                            data-permitted-work="<%= license.permittedWork %>">
-                            <%= license.name %>
-                        </a>
-                        <% if (license.hasElectrical) { %> 
-                            <span class="symbol electrical">🗲</span> 
-                        <% } %>
-                        <% if (license.hasBuilder) { %> 
-                            <span class="symbol builder">🔨</span> 
-                        <% } %>
-                    </li>
-                <% }) %>
-            </ul>
-        <% } else { %>
-            <p>No licenses available for <%= state %>.</p>
-        <% } %>
-    </div>
-
-    <!-- Right: Permitted Work -->
-    <div class="hover-info-wrapper">
-        <h2 class="hover-info-header">Permitted Work</h2>
-        <div class="hover-info">
-            <div id="hover-placeholder" class="hover-placeholder">
-                Hover over a license to see details
-            </div>
-            <div id="hover-license-types" class="license-types hidden"></div>
-            <p id="hover-permitted-work" class="hover-permitted-work hidden"></p>
-        </div>
-    </div>
+<!-- License Cards -->
+<div class="license-cards">
+    <% if (licenses && licenses.length > 0) { %>
+        <% licenses.forEach(license => { %>
+            <a class="license-card" href="/phone-script/<%= encodeURIComponent(state) %>/<%= encodeURIComponent(license.name) %>" data-license-types="<%= license.licenseTypes.join(', ') %>">
+                <h2 class="license-name">
+                    <%= license.name %>
+                    <% if (license.hasElectrical) { %>
+                        <span class="symbol electrical">🗲</span>
+                    <% } %>
+                    <% if (license.hasBuilder) { %>
+                        <span class="symbol builder">🔨</span>
+                    <% } %>
+                </h2>
+                <div class="license-types">Type of Work:
+                    <% license.licenseTypes.forEach(type => { %>
+                        <span class="license-type-badge"><%= type %></span>
+                    <% }); %>
+                </div>
+                <p class="permitted-work"><%= license.permittedWork %></p>
+            </a>
+        <% }); %>
+    <% } else { %>
+        <p>No licenses available for <%= state %>.</p>
+    <% } %>
 </div>
-
-<!-- Full-Width General State Information -->
-<div class="general-state-info">
-    <h2>General State Information</h2>
-    <div><%- generalStateInfo %></div>
-</div>
-
 
 <style>
     /* Page Title */
@@ -82,6 +69,22 @@
         font-weight: bold;
         margin-bottom: 20px;
         text-align: center;
+    }
+
+    /* Top Section: State Sales Page and General State Information */
+    .top-section {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .state-sales-page, .general-state-info {
+        flex: 1;
+        padding: 0; /* Remove padding */
+        border: none; /* Remove border */
+        background: none; /* Remove background color */
+        box-shadow: none; /* Remove box shadow */
     }
 
     /* Legend and Filter Bar */
@@ -142,158 +145,79 @@
         margin-left: 10px;
     }
 
-    /* License Layout */
-    .license-layout {
-        display: flex;
-        justify-content: space-between;
+    /* License Cards */
+    .license-cards {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Two columns */
         gap: 20px;
-        margin-bottom: 20px;
     }
 
-    .license-list {
-        flex: 1;
-    }
-
-    .license-list ul {
-        list-style: none;
-        padding: 0;
-    }
-
-    .license-list li {
-        margin-bottom: 20px;
-    }
-
-    .license-link {
+    .license-card {
+        display: block;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
         text-decoration: none;
-        color: #007BFF;
-        font-size: 16px;
+        color: inherit;
     }
 
-    .license-link:hover {
-        color: #0056b3;
+    .license-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     }
 
-    /* License Type Badges */
-    .license-types {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-        margin-bottom: 20px;
-    }
-
-    .license-types .license-type-badge {
-        display: inline-block;
-        padding: 5px 10px;
-        font-size: 14px;
-        font-weight: bold;
-        color: #fff; /* White text */
-        border-radius: 12px; /* Rounded edges */
-        background: linear-gradient(to right, #667ead, #4b5c7d); /* Gradient background */
-    }
-
-    /* Permitted Work */
-    .hover-info-wrapper {
-        flex: 1;
-    }
-
-    .hover-info-header {
+    .license-name {
+        margin: 0;
         font-size: 20px;
         font-weight: bold;
         margin-bottom: 10px;
     }
 
-    .hover-info {
-        border: 1px solid #ddd;
-        padding: 15px;
-        border-radius: 8px;
-        background-color: #f9f9f9;
+    .license-types {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 150px;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 10px;
     }
 
-    .hover-placeholder {
+    .license-type-badge {
+        padding: 5px 10px;
+        font-size: 14px;
+        font-weight: bold;
+        color: #fff;
+        border-radius: 12px;
+        background: linear-gradient(to right, #667ead, #4b5c7d);
+    }
+
+    .permitted-work {
         font-size: 16px;
         color: #555;
-        text-align: center;
-    }
-
-    .hidden {
-        display: none;
-    }
-
-    .hover-info.active {
-        justify-content: flex-start;
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .hover-permitted-work {
-        font-size: 18px;
-        line-height: 1.6;
-        letter-spacing: 0.5px;
-        color: #333;
-        margin-top: 10px;
+        margin-bottom: 10px;
     }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', () => {
-    const licenseLinks = document.querySelectorAll('.license-link');
-    const hoverPlaceholder = document.getElementById('hover-placeholder');
-    const licenseTypesContainer = document.getElementById('hover-license-types');
-    const permittedWorkSpan = document.getElementById('hover-permitted-work');
-    const hoverInfo = document.querySelector('.hover-info');
-    const checkboxes = document.querySelectorAll('.license-type-filter-checkbox');
-    const licenseItems = document.querySelectorAll('.license-item');
-
-    // Hover functionality
-    licenseLinks.forEach(link => {
-        link.addEventListener('mouseover', () => {
-            const licenseTypes = link.getAttribute('data-license-types').split(', ');
-            const permittedWork = link.getAttribute('data-permitted-work');
-
-            hoverPlaceholder.classList.add('hidden');
-            licenseTypesContainer.classList.remove('hidden');
-            permittedWorkSpan.classList.remove('hidden');
-            hoverInfo.classList.add('active');
-
-            licenseTypesContainer.innerHTML = '';
-            licenseTypes.forEach(type => {
-                const badge = document.createElement('span');
-                badge.className = 'license-type-badge';
-                badge.textContent = type;
-                licenseTypesContainer.appendChild(badge);
-            });
-
-            permittedWorkSpan.textContent = permittedWork || 'No permitted work details available';
-        });
-
-        link.addEventListener('mouseout', () => {
-            hoverPlaceholder.classList.remove('hidden');
-            licenseTypesContainer.classList.add('hidden');
-            permittedWorkSpan.classList.add('hidden');
-            hoverInfo.classList.remove('active');
-        });
-    });
-
-    // Filter functionality
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', () => {
-            const selectedTypes = Array.from(checkboxes)
-                .filter(cb => cb.checked)
-                .map(cb => cb.value);
-
-            licenseItems.forEach(item => {
-                const itemTypes = item.getAttribute('data-license-types').split(', ');
-
-                // Check if the item includes all selected types
-                const matches = selectedTypes.every(type => itemTypes.includes(type));
-                item.style.display = selectedTypes.length === 0 || matches ? '' : 'none';
+    document.addEventListener('DOMContentLoaded', () => {
+        const checkboxes = document.querySelectorAll('.license-type-filter-checkbox');
+        const licenseCards = document.querySelectorAll('.license-card');
+    
+        checkboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                const selectedTypes = Array.from(checkboxes)
+                    .filter(cb => cb.checked)
+                    .map(cb => cb.value);
+    
+                licenseCards.forEach(card => {
+                    const itemTypes = card.getAttribute('data-license-types').split(', ');
+    
+                    // Show cards that match the selected types or show all if no types are selected
+                    const matches = selectedTypes.every(type => itemTypes.includes(type));
+                    card.style.display = selectedTypes.length === 0 || matches ? '' : 'none';
+                });
             });
         });
     });
-});
-
-</script>
+    </script>

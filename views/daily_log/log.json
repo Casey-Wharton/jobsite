@@ -1,0 +1,72 @@
+[
+  {
+    "date": "2025-01-24",
+    "tasks": [
+      "Created this daily log! Happy Birthday, work diary.",
+      "Added multiple new 3D book images to books on MCL",
+      "Fixed book categories for the two new Arizona exams (Commercial/Dual and Residential). I made sure the bookset, tabset, and individual books were assigned correctly for the category.",
+      "Added \"understanding code books\" video to electrical code book classes",
+      "Concept design for bookstore categories where bookset and tabset are listed on top and the individual books are listed below. Did this on Arizona B Residential bookstore category",
+      "Added a few new questions to Florida Contractor Manual"
+    ]
+  },
+  {
+    "date": "2025-01-27",
+    "tasks": [
+      "Fixed warehouse tab printers by installing both new printers and fixing the tab template (adjusting margins to print correctly)",
+      "Updated \"Soares\" highlighting guide to fix page numbers after new printing. Also fixed the Soares tabs page numbering",
+      "So many issues to fix today. Returns, buybacks, missing items in orders, and other support related duties are taking up a lot of time today.",
+      "Highlighted and tabbed a couple books for an order that needed to ship today",
+      "More 3D book images added to products on MCL",
+      "Fixed more bookstore categories. Put bookset and tabset at top, with link to license/course page. Added correct individual books. So many of these bookstores have wrong editions or missing books."
+    ]
+  },
+  {
+    "date": "2025-01-28",
+    "tasks": [
+      "Still working on fixing the \"Bookstore\" on MCL. Fixing categories, removing products that are attached that shouldn't be, adding missing products. New design with bookset and tabset at top, and just overall making it easier to navigate and cleaner. Same as yesterday, but doing a ton more of it.",
+      "Helped warehouse catch up a little. Pre-boxed 10 NASCLA sets",
+      "Today Trent got locked in the bathroom for almost an hour. Ron went up in the ceiling. We cut through the metal dead bolt. What a day lol"
+    ]
+  },
+  {
+    "date": "2025-01-29",
+    "tasks": [
+      "Called people with quote orders to try and close as many as possible (Trent gave me a list)",
+      "More MCL website updates. More category pages cleaned and updated. Fixing a few product descriptions and images too",
+      "Added a few NASCLA electrical questions to the NEC book",
+      "Updated Return and Buyback Airtable to have a couple more fields and added different views",
+      "API tests between LMS and The Jobsite",
+      "Created a tool to change course expiration dates back to past dates"
+    ]
+  },
+  {
+    "date": "2025-01-30",
+    "tasks": [
+      "We hit $1,000,000 in a month for the first time yesterday!",
+      "Adding new Arizona courses to phone script. Also starting to add some electrical licenses to the phone script (NASCLA electrical only)",
+      "Lots of long-winded pre-exam calls.",
+      "Made new course only and tab only product images and put them in MCL"
+    ]
+  },
+  {
+    "date": "2025-01-31",
+    "tasks": [
+      "Started on the NC Electrical exam courses",
+      "Created new NFPA 72 2013 book, created 3D book image, switched out product image on MCL with new 3D book image, etc."
+    ]
+  },
+  {
+    "date": "2025-02-03",
+    "tasks": [
+      "Holden called out sick today. Spent the whole day in the warehouse with Toombs and Nic getting orders packed, fixing tab printers, printing books, stocking shelves, etc. "
+    ]
+  },
+  {
+    "date": "2025-02-04",
+    "tasks": [
+      "More updated product images on MCL. More categories cleaned up in the bookstore and on the regular state/license pages.",
+      "Fixed hundreds of typos, grammar, and formatting issues in product names"
+    ]
+  }
+]

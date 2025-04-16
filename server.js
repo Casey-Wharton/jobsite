@@ -13,6 +13,8 @@ const phoneRouter = require('./routes/phone-script');
 const bookRouter = require('./routes/books');
 const examRouter = require('./routes/exams');
 const booksetRouter = require('./routes/booksets');
+const logRouter = require('./routes/logRoutes');  // Added daily log route
+const imagesRouter = require('./routes/images');
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
@@ -35,5 +37,7 @@ app.use('/phone-script', phoneRouter);
 app.use('/books', bookRouter);
 app.use('/exams', examRouter);
 app.use('/booksets', booksetRouter);
+app.use('/logs', logRouter);  // Added daily log route
+app.use('/images', imagesRouter);
 
 app.listen(process.env.PORT || 3000);

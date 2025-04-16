@@ -64,95 +64,93 @@ router.get('/', async (req, res) => {
 
 // Route to handle dynamic state pages
 router.get('/:state', async (req, res) => {
-    const state = req.params.state;
-    try {
-        const records = await base('States').select({
-            filterByFormula: `{State} = "${state}"`,
-            maxRecords: 1,
-            view: 'Grid view'
-        }).firstPage();
+  const state = req.params.state;
+  try {
+      const records = await base('States').select({
+          filterByFormula: `{State} = "${state}"`,
+          maxRecords: 1,
+          view: 'Grid view'
+      }).firstPage();
 
-        if (records.length === 0) {
-            return res.status(404).send("State not found");
-        }
+      if (records.length === 0) {
+          return res.status(404).send("State not found");
+      }
 
-        const licenseIds = records[0].fields.Licenses;
+      const licenseIds = records[0].fields.Licenses;
 
-        // Fetch licenses using the IDs
-        const licenses = await base('Licenses').select({
-            filterByFormula: `OR(${licenseIds.map(id => `RECORD_ID() = '${id}'`).join(", ")})`,
-            view: 'Grid view'
-        }).all();
+      // Fetch licenses using the IDs
+      const licenses = await base('Licenses').select({
+          filterByFormula: `OR(${licenseIds.map(id => `RECORD_ID() = '${id}'`).join(", ")})`,
+          view: 'Grid view'
+      }).all();
 
-        // Process licenses
-        const processedLicenses = await Promise.all(
-            licenses.map(async (license) => {
-                // Combine Exam IDs from "Exams" and "Exams 2" fields
-                const examIds = [
-                    ...(license.fields.Exams || []),
-                    ...(license.fields['Exams 2'] || [])
-                ];
+      // Process licenses
+      const processedLicenses = await Promise.all(
+          licenses.map(async (license) => {
+              const examIds = [
+                  ...(license.fields.Exams || []),
+                  ...(license.fields['Exams 2'] || [])
+              ];
 
-                // Fetch exams linked to the license
-                const exams = await base('Exams').select({
-                    filterByFormula: `OR(${examIds.map(id => `RECORD_ID() = '${id}'`).join(", ")})`,
-                    view: 'Grid view'
-                }).all();
+              const exams = await base('Exams').select({
+                  filterByFormula: `OR(${examIds.map(id => `RECORD_ID() = '${id}'`).join(", ")})`,
+                  view: 'Grid view'
+              }).all();
 
-                const examNames = exams.map(exam => exam.fields['Exam Name'] || '');
-                const hasBuilder = examNames.some(name => name.includes("🔨"));
-                const hasElectrical = examNames.some(name => name.includes("🗲"));
+              const examNames = exams.map(exam => exam.fields['Exam Name'] || '');
+              const hasBuilder = examNames.some(name => name.includes("🔨"));
+              const hasElectrical = examNames.some(name => name.includes("🗲"));
 
-                return {
-                    name: license.fields.License, // License name
-                    permittedWork: license.fields['Permitted Work'] || 'No information available.', // Permitted Work
-                    licenseTypes: license.fields['License Type'] || [], // License Types
-                    hasBuilder,
-                    hasElectrical,
-                };
-            })
-        );
+              return {
+                  name: license.fields.License,
+                  permittedWork: license.fields['Permitted Work'] || 'No information available.',
+                  licenseTypes: license.fields['License Type'] || [],
+                  hasBuilder,
+                  hasElectrical,
+              };
+          })
+      );
 
-        // Sort licenses alphabetically
-        processedLicenses.sort((a, b) => a.name.localeCompare(b.name));
+      processedLicenses.sort((a, b) => a.name.localeCompare(b.name));
 
-        // Convert the General State Information from Markdown to HTML
-        const generalStateInfoHtml = marked(records[0].fields['General State Information'] || '');
+      const generalStateInfoHtml = marked(records[0].fields['General State Information'] || '');
+      const stateSalesPage = records[0].fields['State Sales Page'] || null; // Fetch the State Sales Page URL
 
-        const params = {
-            state: records[0].fields.State,
-            licenses: processedLicenses, // Alphabetically sorted licenses
-            generalStateInfo: generalStateInfoHtml, // Pass the HTML version
-        };
+      const params = {
+          state: records[0].fields.State,
+          licenses: processedLicenses,
+          generalStateInfo: generalStateInfoHtml,
+          stateSalesPage, // Pass the State Sales Page URL to the template
+      };
 
-        res.render('phone-script/state-page', params);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error retrieving data");
-    }
+      res.render('phone-script/state-page', params);
+  } catch (err) {
+      console.error(err);
+      res.status(500).send("Error retrieving data");
+  }
 });
-
 
 // THIS IS WHERE YOU DEFINE WHICH FIELDS GO IN WHICH SECTION. Tables are "Licenses", "States", and "Exams"
 const sectionFields = {
     licenseInfo: [
       { table: 'Licenses', field: 'Permitted Work' },
-      { table: 'Licenses', field: 'Reciprocity' },
       { table: 'Licenses', field: 'When is a license required' },
+      { table: 'Licenses', field: 'Reciprocity' },
+      { table: 'Licenses', field: 'How often you need to renew' },
       { table: 'Licenses', field: 'Renewal Fee' },
       { table: 'Licenses', field: 'Continuing Education' },
-      { table: 'Licenses', field: 'How often you need to renew' },
       { table: 'Licenses', field: 'Steps to Get a License' }
     ],
     applicationInfo: [
-      { table: 'Licenses', field: 'Application Fee' },
+      { table: 'Licenses', field: 'Application Instructions' },
       { table: 'Licenses', field: 'Application Link' },
+      { table: 'Licenses', field: 'Application Fee' },
       { table: 'Licenses', field: 'Experience Requirement' },
       { table: 'Licenses', field: 'Insurance Requirement' },
       { table: 'Licenses', field: 'Financial Requirement' }
     ],
     examInfo: [
-      { table: 'Exams', field: 'Exam Name' },
+      { table: 'Exams', field: 'Candidate Bulletin Link' },
       { table: 'Exams', field: 'Testing Fee' },
       { table: 'Exams', field: 'Link to Schedule' },
       { table: 'Exams', field: 'Time Allotted' },
@@ -161,15 +159,18 @@ const sectionFields = {
       { table: 'Exams', field: 'Passing Score' },
       { table: 'Exams', field: 'Number of Attempts' },
       { table: 'Exams', field: 'Books' },
-      { table: 'Exams', field: 'Candidate Bulletin Link' }
+      { table: 'Exams', field: 'Allowed Into the Exam'}
     ],
     courseInfo: [
-        { table: 'Exams', field: 'Course Length (in hours)' },
-        { table: 'Exams', field: 'Course Length (in weeks at our pace)' }
+        { table: 'Exams', field: 'Average Course Length' },
+        { table: 'Exams', field: 'Questions in the Course' }
     ],
     productInfo: [
-      { table: 'Licenses', field: 'License' },
-      { table: 'Licenses', field: 'License Type' }
+      { table: 'Licenses', field: 'Combo Link' },
+      { table: 'Licenses', field: 'Prehighlighted Combo Link' },
+      { table: 'Licenses', field: 'Bookset Link' },
+      { table: 'Licenses', field: 'Course Link' },
+      { table: 'Licenses', field: 'Tabset Link' }
     ]
   };
   
@@ -181,67 +182,138 @@ const sectionFields = {
       const stateRecords = await base('States').select({
         filterByFormula: `{State} = "${state}"`,
         maxRecords: 1,
-        view: 'Grid view'
+        view: 'Grid view',
       }).firstPage();
   
       if (!stateRecords.length) {
-        return res.status(404).send("State not found");
+        return res.status(404).send('State not found');
       }
+  
+      const stateRecord = stateRecords[0];
   
       // Fetch license record
       const licenseRecords = await base('Licenses').select({
         filterByFormula: `{License} = "${licenseName}"`,
         maxRecords: 1,
-        view: 'Grid view'
+        view: 'Grid view',
       }).firstPage();
   
       if (!licenseRecords.length) {
-        return res.status(404).send("License not found");
+        return res.status(404).send('License not found');
       }
   
       const license = licenseRecords[0].fields;
   
-      // Fetch linked exams
-      const linkedExamIds = license.Exams || [];
+      // Fetch linked exams from both "Exams" and "Exams 2"
+      const linkedExamIds1 = license.Exams || [];
+      const linkedExamIds2 = license['Exams 2'] || [];
+      const allLinkedExamIds = [...linkedExamIds1, ...linkedExamIds2];
+  
       const exams = await base('Exams').select({
-        filterByFormula: `OR(${linkedExamIds.map(id => `RECORD_ID() = '${id}'`).join(", ")})`,
-        view: 'Grid view'
+        filterByFormula: `OR(${allLinkedExamIds.map(id => `RECORD_ID() = '${id}'`).join(', ')})`,
+        view: 'Grid view',
       }).all();
   
-      // Prepare examOptions
-      const examOptions = exams.map(exam => ({
-        name: exam.fields['Exam Name'] || 'Unnamed Exam',
-        fields: exam.fields
-      }));
+      const examsFromField1 = linkedExamIds1
+        .map(id => exams.find(exam => exam.id === id))
+        .filter(Boolean);
   
-      // Prepare sectionData
+      const examsFromField2 = linkedExamIds2
+        .map(id => exams.find(exam => exam.id === id))
+        .filter(Boolean);
+  
+      // Prepare dropdown options
+      const dropdownOptions = [];
+      if (examsFromField1.length) {
+        dropdownOptions.push({
+          name: examsFromField1.some(exam => exam.fields['Exam Name']?.includes("NASCLA"))
+            ? examsFromField1.find(exam => exam.fields['Exam Name']?.includes("NASCLA")).fields['Exam Name']
+            : "State Test 1",
+          exams: examsFromField1.map(exam => ({
+            name: exam.fields['Exam Name'] || 'Unnamed Exam',
+            fields: exam.fields,
+          })),
+        });
+      }
+      if (examsFromField2.length) {
+        dropdownOptions.push({
+          name: examsFromField2.some(exam => exam.fields['Exam Name']?.includes("NASCLA"))
+            ? examsFromField2.find(exam => exam.fields['Exam Name']?.includes("NASCLA")).fields['Exam Name']
+            : "State Test 2",
+          exams: examsFromField2.map(exam => ({
+            name: exam.fields['Exam Name'] || 'Unnamed Exam',
+            fields: exam.fields,
+          })),
+        });
+      }
+  
+      // Ensure dropdownOptions has at least one entry to avoid empty dropdown
+      if (!dropdownOptions.length) {
+        dropdownOptions.push({
+          name: "No Exams",
+          exams: [],
+        });
+      }
+  
+      // Determine the test center location field
+      let testCenterLocation = null;
+      let testCenter = null;
+      if (exams.length > 0) {
+        const currentExam = exams[0]; // Default to the first exam in the dropdown
+        const testingCompanyUsed = currentExam.fields['Testing Company Used'];
+        switch (testingCompanyUsed) {
+          case 'PSI':
+            testCenterLocation = stateRecord.fields['PSI Test Center Locations'];
+            testCenter = 'PSI';
+            break;
+          case 'ProV':
+            testCenterLocation = stateRecord.fields['ProV Test Center Locations'];
+            testCenter = 'ProV';
+            break;
+          case 'PearsonVue':
+            testCenterLocation = stateRecord.fields['PearsonVue Test Center Locations'];
+            testCenter = 'PearsonVue';
+            break;
+          default:
+            testCenterLocation = null;
+        }
+      }
+  
+      // Prepare sectionData with non-empty fields only
+      const filterFields = (fields, source, appendSuffix = "") =>
+        fields
+          .map(({ field }) => ({
+            field: `${field}${appendSuffix}`,
+            value: source[`${field}${appendSuffix}`],
+          }))
+          .filter(({ value }) => value); // Include only fields with values
+  
       const sectionData = {
-        licenseInfo: sectionFields.licenseInfo.map(({ field }) => ({
-          field,
-          value: license[field] || 'N/A'
+        licenseInfo: filterFields(sectionFields.licenseInfo, license),
+        applicationInfo: filterFields(sectionFields.applicationInfo, license),
+        dropdownOptions,
+        productInfo: dropdownOptions.map((option, index) => ({
+          name: option.name,
+          fields: index === 0
+            ? filterFields(sectionFields.productInfo, license) // Use original field names for "Exams"
+            : filterFields(sectionFields.productInfo, license, " 2"), // Append " 2" for "Exams 2"
         })),
-        applicationInfo: sectionFields.applicationInfo.map(({ field }) => ({
-          field,
-          value: license[field] || 'N/A'
-        })),
-        examOptions,
-        productInfo: sectionFields.productInfo.map(({ field }) => ({
-          field,
-          value: license[field] || 'N/A'
-        }))
       };
   
       // Render the page
       res.render('phone-script/license-page', {
-        state: stateRecords[0].fields.State,
+        state: stateRecord.fields.State,
         license,
         sectionData,
-        sectionFields
+        sectionFields,
+        testCenter,
+        testCenterLocation, // Pass the test center location to the template
       });
     } catch (err) {
-      console.error("Error retrieving data:", err);
-      res.status(500).send("An error occurred while retrieving data");
+      console.error('Error retrieving data:', err);
+      res.status(500).send('An error occurred while retrieving data');
     }
   });
-    
+  
+
 module.exports = router;
