@@ -1,0 +1,32 @@
+<div style="padding: 20px; max-width: 800px; margin: auto;">
+    <h2>Auto Presentations</h2>
+    <table style="width: 100%; border-collapse: collapse;">
+      <thead>
+        <tr style="background-color: #f4f4f4;">
+          <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc;">Presentation</th>
+          <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc;">Last Updated</th>
+          <th style="padding: 8px; border-bottom: 1px solid #ccc;"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% presentationFiles.forEach(p => { %>
+          <tr>
+            <td style="padding: 8px;"><%= p.fileName %></td>
+            <td style="padding: 8px;"><%= p.lastUpdated %></td>
+            <td style="padding: 8px; display: flex; gap: 8px;">
+                <form method="POST" action="/presentations/update/<%= p.bookId %>">
+                  <button type="submit" style="padding: 6px 12px; background-color: #007acc; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Update
+                  </button>
+                </form>
+                <form method="GET" action="/presentations/edit/<%= p.bookId %>">
+                  <button type="submit" style="padding: 6px 12px; background-color: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    Edit
+                  </button>
+                </form>
+              </td>              
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>  

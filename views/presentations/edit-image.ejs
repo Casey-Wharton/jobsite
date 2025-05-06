@@ -1,0 +1,263 @@
+<div style="padding: 20px; max-width: 1400px; margin: auto;">
+    <div style="margin-bottom: 20px;">
+      <a href="/presentations/edit/<%= question.bookId %>" style="display: inline-block; padding: 6px 12px; background-color: #888; color: white; border-radius: 4px; text-decoration: none;">
+        ← Back to Edit Presentation
+      </a>
+    </div>
+  
+    <div style="display: flex; gap: 30px;">
+      <!-- LEFT: Question Info -->
+      <div style="flex: 1;">
+        <h2>Edit Image for Question ID <%= question.questionId %></h2>
+  
+        <div style="margin-bottom: 20px;">
+          <strong>Question Text:</strong>
+          <div><%- question.questionText %></div>
+        </div>
+  
+        <div style="margin-bottom: 20px;">
+            <strong>Correct Answer:</strong>
+            <p><%= question.correctAnswer || 'No correct answer found' %></p>
+          </div>
+        <div style="margin-bottom: 20px;">
+          <strong>Hint:</strong>
+          <div><%- question.hint || 'No hint provided' %></div>
+        </div>
+  
+
+      </div>
+  
+<!-- RIGHT: Embedded PDF Viewer and Button -->
+<div style="flex: 1; display: flex; flex-direction: column;">
+<!-- PDF.js rendering container -->
+<div style="flex: 1; height: 600px; position: relative; border: 1px solid #ccc; border-radius: 6px; overflow: hidden;">
+    <div id="pdf-wrapper" style="margin: auto; position: relative;">
+        <canvas id="pdf-canvas" style="display: block;"></canvas>
+        <div id="highlight-overlay" style="position: absolute; top: 0; left: 0;"></div>
+      </div>
+      
+  </div>
+  
+  <div style="margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 12px;">
+    <button id="prev-page" style="padding: 6px 12px;">← Prev</button>
+    
+    <span id="page-info" style="font-weight: bold;">Page 1</span>
+    
+    <button id="next-page" style="padding: 6px 12px;">Next →</button>
+  
+    <label for="jump-to-page" style="margin-left: 16px;">Jump to:</label>
+    <input type="number" id="jump-to-page" min="1" style="width: 60px; padding: 4px;" />
+    <button id="jump-btn" style="padding: 4px 10px;">Go</button>
+    <button id="clear-highlights-btn" style="margin-top: 8px; padding: 8px 16px; background-color: #b53d3d; color: white; border: none; border-radius: 4px; cursor: pointer;">
+        Clear Highlights
+      </button>      
+  </div>
+
+  <button id="capture-btn" style="margin-top: 12px; padding: 10px 16px; background-color: #32728f; color: white; border: none; border-radius: 4px; cursor: pointer;">
+    Update Image Hint
+  </button>
+  
+  </div>
+  
+    </div>
+  </div>  
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+<script>
+const pdfUrl = "https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/bookpdfs/<%= question.bookId %>.pdf?v=" + Date.now();
+const canvas = document.getElementById("pdf-canvas");
+const ctx = canvas.getContext("2d");
+const overlay = document.getElementById("highlight-overlay");
+let pdfDoc = null;
+let scale = 1;
+let pageNum = 1;
+let totalPages = 0;
+let highlights = [];
+
+document.getElementById("jump-btn").addEventListener("click", () => {
+  const input = document.getElementById("jump-to-page");
+  const target = parseInt(input.value, 10);
+  if (!isNaN(target) && target >= 1 && target <= totalPages) {
+    pageNum = target;
+    renderPage(pageNum);
+  } else {
+    alert(`Enter a number between 1 and ${totalPages}`);
+  }
+});
+
+function renderPage(num, callback) {
+  pdfDoc.getPage(num).then(page => {
+    const viewport = page.getViewport({ scale });
+    canvas.height = viewport.height;
+    canvas.width = viewport.width;
+
+    const scaledWidth = canvas.width;
+    const scaledHeight = canvas.height;
+
+    canvas.style.width = `${scaledWidth}px`;
+    canvas.style.height = `${scaledHeight}px`;
+    overlay.style.width = `${scaledWidth}px`;
+    overlay.style.height = `${scaledHeight}px`;
+
+    const wrapper = document.getElementById("pdf-wrapper");
+    wrapper.style.width = `${scaledWidth}px`;
+    wrapper.style.height = `${scaledHeight}px`;
+
+    const renderContext = {
+      canvasContext: ctx,
+      viewport: viewport
+    };
+    page.render(renderContext).promise.then(() => {
+      if (callback) callback();  // Call it AFTER PDF is rendered
+    });
+
+    document.getElementById("page-info").textContent = `Page ${pageNum} of ${totalPages}`;
+  });
+}
+
+
+const pdfjsLib = window['pdfjsLib'];
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+pdfjsLib.getDocument(pdfUrl).promise.then(doc => {
+  pdfDoc = doc;
+  totalPages = doc.numPages;
+  renderPage(pageNum);
+});
+
+fetch(`https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/bookpdfs/<%= question.bookId %>.json`)
+  .then(res => res.json())
+  .then(data => {
+  const questionHighlight = data["<%= question.questionId %>"];
+  if (questionHighlight) {
+    pageNum = questionHighlight.page || 1;
+    highlights = questionHighlight.highlights || [];
+    renderPage(pageNum, renderHighlights);  // ← clean + reliable
+  }
+})
+  .catch(err => {
+    console.log("No highlights found or error loading JSON", err);
+  });
+
+
+let isDrawing = false;
+let startX, startY;
+overlay.addEventListener("mousedown", e => {
+  isDrawing = true;
+  const rect = overlay.getBoundingClientRect();
+  startX = e.clientX - rect.left;
+  startY = e.clientY - rect.top;
+
+  const box = document.createElement("div");
+  box.className = "highlight-box";
+  box.style.position = "absolute";
+  box.style.border = "none";
+  box.style.background = "rgba(255, 255, 0, 0.3)";
+  box.style.left = startX + "px";
+  box.style.top = startY + "px";
+  overlay.appendChild(box);
+  overlay.currentBox = box;
+});
+
+overlay.addEventListener("mousemove", e => {
+  if (!isDrawing) return;
+  const rect = overlay.getBoundingClientRect();
+  const currentX = e.clientX - rect.left;
+  const currentY = e.clientY - rect.top;
+  const box = overlay.currentBox;
+  box.style.width = Math.abs(currentX - startX) + "px";
+  box.style.height = Math.abs(currentY - startY) + "px";
+  box.style.left = Math.min(currentX, startX) + "px";
+  box.style.top = Math.min(currentY, startY) + "px";
+});
+
+overlay.addEventListener("mouseup", () => {
+  if (!isDrawing) return;
+  isDrawing = false;
+  const box = overlay.currentBox;
+  const rect = {
+    x: parseFloat(box.style.left),
+    y: parseFloat(box.style.top),
+    width: parseFloat(box.style.width),
+    height: parseFloat(box.style.height)
+  };
+  highlights.push(rect);
+});
+
+document.getElementById("capture-btn").addEventListener("click", () => {
+  // Create an offscreen canvas to merge PDF and highlights
+  const finalCanvas = document.createElement("canvas");
+  finalCanvas.width = canvas.width;
+  finalCanvas.height = canvas.height;
+  const finalCtx = finalCanvas.getContext("2d");
+
+  // Draw PDF first
+  finalCtx.drawImage(canvas, 0, 0);
+
+  // Draw each highlight rectangle
+  highlights.forEach(rect => {
+    finalCtx.fillStyle = "rgba(255, 255, 0, 0.3)";
+    finalCtx.fillRect(rect.x, rect.y, rect.width, rect.height);
+  });
+
+  const imageData = finalCanvas.toDataURL("image/png");
+
+  fetch("/presentations/update-image-hint/<%= question.questionId %>", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      image: imageData,
+      highlights: highlights,
+      bookId: "<%= question.bookId %>",
+      page: pageNum
+    })
+  });
+});
+
+function renderHighlights() {
+  overlay.innerHTML = ''; // Clear any existing highlights
+  highlights.forEach(rect => {
+    const box = document.createElement("div");
+    box.className = "highlight-box";
+    box.style.position = "absolute";
+    box.style.left = rect.x + "px";
+    box.style.top = rect.y + "px";
+    box.style.width = rect.width + "px";
+    box.style.height = rect.height + "px";
+    box.style.background = "rgba(255, 255, 0, 0.3)";
+    box.style.pointerEvents = "none"; // Don't block clicks
+    overlay.appendChild(box);
+  });
+}
+
+
+document.getElementById("prev-page").addEventListener("click", () => {
+  if (pageNum <= 1) return;
+  pageNum--;
+  renderPage(pageNum);
+});
+
+document.getElementById("next-page").addEventListener("click", () => {
+  if (pageNum >= totalPages) return;
+  pageNum++;
+  renderPage(pageNum);
+});
+
+document.getElementById("clear-highlights-btn").addEventListener("click", () => {
+  highlights = [];
+  renderHighlights();
+
+  fetch("/presentations/update-image-hint/<%= question.questionId %>", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      image: canvas.toDataURL("image/png"),  // Still required for saving
+      highlights: [],
+      bookId: "<%= question.bookId %>",
+      page: pageNum
+    })
+  });
+});
+
+</script>

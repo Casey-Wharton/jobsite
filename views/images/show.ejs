@@ -5,12 +5,14 @@
             <a href="/images">Back to All Booksets</a>
             <button onclick="generateSnapshot()">Generate Screenshot</button>
             <br>
-            <% } %>            
+        <% } %>            
     </div>
     <div>
         <h3>Bookset Image:</h3>
-        <!-- DEBUG: <%= JSON.stringify(books) %> -->
         <div class="background-div">
+            <% if (isScreenshot) { %>
+                <img class="background-img-tag" src="https://internalpage.s3.amazonaws.com/bookset+background.png" alt="Background">
+            <% } %>
             <div class="book-container">
                 <% let imageCount = 0;
                 books.forEach(book => {
@@ -26,6 +28,7 @@
         </div>
     </div>
 </div>
+
 <% if (!isScreenshot) { %>
     <div id="snapshot-output" style="margin-top: 20px;"></div>
 <% } %>
@@ -40,14 +43,27 @@
 .background-div {
     width: 700px;
     height: 700px;
-    background-image: url('https://internalpage.s3.amazonaws.com/bookset+background.png');
-    background-size: cover;
+    position: relative;
     display: flex;
     flex-direction: column;
     padding: 10px;
     box-sizing: border-box;
+    <% if (!isScreenshot) { %>
+        background-image: url('https://internalpage.s3.amazonaws.com/bookset+background.png');
+        background-size: cover;
+    <% } %>
+}
+.background-img-tag {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 700px;
+    height: 700px;
+    z-index: 0;
 }
 .book-container {
+    position: relative;
+    z-index: 1;
     display: grid;
     gap: 10px;
 }
@@ -61,68 +77,62 @@
 </style>
 
 <script>
-    function calculateGrid() {
-        const container = document.querySelector('.book-container');
-        const items = container.children.length;
+function calculateGrid() {
+    const container = document.querySelector('.book-container');
+    const items = container.children.length;
 
-        const containerWidth = 680;
-        const containerHeight = 700 - 20;
+    const containerWidth = 680;
+    const containerHeight = 700 - 20;
 
-        let columns = Math.ceil(Math.sqrt(items)) * 2;
-        let rows = Math.ceil(items / (columns / 2));
+    let columns = Math.ceil(Math.sqrt(items)) * 2;
+    let rows = Math.ceil(items / (columns / 2));
 
-        let gap = 10;
-        let totalGapWidth = (columns - 1) * gap;
-        let totalGapHeight = (rows - 1) * gap;
+    let gap = 10;
+    let totalGapWidth = (columns - 1) * gap;
+    let totalGapHeight = (rows - 1) * gap;
 
-        let availableWidth = containerWidth - totalGapWidth;
-        let availableHeight = containerHeight - totalGapHeight;
+    let availableWidth = containerWidth - totalGapWidth;
+    let availableHeight = containerHeight - totalGapHeight;
 
-        let cellWidth = availableWidth / columns;
-        let cellHeight = availableHeight / rows;
+    let cellWidth = availableWidth / columns;
+    let cellHeight = availableHeight / rows;
 
-        while (cellHeight > availableHeight / rows) {
-            rows++;
-            totalGapHeight = (rows - 1) * gap;
-            cellHeight = (availableHeight - totalGapHeight) / rows;
-        }
-
-        container.style.gridTemplateColumns = `repeat(${columns}, ${cellWidth}px)`;
-        container.style.gridTemplateRows = `repeat(${rows}, ${cellHeight}px)`;
+    while (cellHeight > availableHeight / rows) {
+        rows++;
+        totalGapHeight = (rows - 1) * gap;
+        cellHeight = (availableHeight - totalGapHeight) / rows;
     }
 
-    window.addEventListener('DOMContentLoaded', calculateGrid);
-    window.addEventListener('resize', calculateGrid);
+    container.style.gridTemplateColumns = `repeat(${columns}, ${cellWidth}px)`;
+    container.style.gridTemplateRows = `repeat(${rows}, ${cellHeight}px)`;
+}
 
-    function generateSnapshot() {
-        const button = event.target;
-        button.disabled = true;
-        button.innerText = 'Generating...';
+window.addEventListener('DOMContentLoaded', calculateGrid);
+window.addEventListener('resize', calculateGrid);
 
-        fetch(window.location.pathname + '/snapshot')
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    const img = document.createElement('img');
-                    img.src = data.path;
-                    img.style.border = '1px solid #ccc';
-                    img.style.marginTop = '20px';
-                    img.style.maxWidth = '700px';
+function generateSnapshot() {
+    const button = event.target;
+    button.disabled = true;
+    button.innerText = 'Generating...';
 
-                    document.getElementById('snapshot-output').innerHTML = '';
-                    document.getElementById('snapshot-output').appendChild(img);
-                } else {
-                    alert('Failed to generate image.');
-                }
-            })
-            .catch(err => {
-                alert('Error generating image.');
-                console.error(err);
-            })
-            .finally(() => {
-                button.disabled = false;
-                button.innerText = 'Generate Screenshot';
-            });
-    }
-
+    fetch(window.location.pathname + '/snapshot', {
+        method: 'POST'
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alert('Screenshot saved to Airtable successfully!');
+            } else {
+                alert('Failed to upload screenshot.');
+            }
+        })
+        .catch(err => {
+            alert('Error uploading screenshot.');
+            console.error(err);
+        })
+        .finally(() => {
+            button.disabled = false;
+            button.innerText = 'Generate Screenshot';
+        });
+}
 </script>

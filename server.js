@@ -4,8 +4,8 @@ if (process.env.NODE_ENV !== 'production') {
 
 const express = require('express');
 const app = express();
+const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
-const bodyParser = require('body-parser');
 const methodOverride = require('method-override');
 
 const indexRouter = require('./routes/index');
@@ -15,16 +15,18 @@ const examRouter = require('./routes/exams');
 const booksetRouter = require('./routes/booksets');
 const logRouter = require('./routes/logRoutes');  // Added daily log route
 const imagesRouter = require('./routes/images');
+const presentationsRouter = require('./routes/presentations');
 
 app.set('view engine', 'ejs');
 app.set('views', __dirname + '/views');
 app.set('layout', 'layouts/layout');
+app.use('/imgs', express.static(path.join(__dirname, 'imgs')));
 app.use(expressLayouts);
 app.use(methodOverride('_method'))
 app.use(express.static('public'));
 // No idea what this does
 app.use(express.urlencoded({ limit: '10mb', extended: false }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 const mongoose = require('mongoose')
 mongoose.connect(process.env.DATABASE_URL)
@@ -37,7 +39,8 @@ app.use('/phone-script', phoneRouter);
 app.use('/books', bookRouter);
 app.use('/exams', examRouter);
 app.use('/booksets', booksetRouter);
-app.use('/logs', logRouter);  // Added daily log route
+app.use('/logs', logRouter);
 app.use('/images', imagesRouter);
+app.use('/presentations', presentationsRouter);
 
 app.listen(process.env.PORT || 3000);
