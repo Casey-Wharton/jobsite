@@ -16,8 +16,6 @@ const s3 = new AWS.S3({
 const BASE_S3_URL = 'https://s3.amazonaws.com/contractorcourses.com';
 const BUCKET_NAME = 'contractorcourses.com';
 const FOLDER = '00_autopresentations';
-const TITLE_IMAGE_PREFIX = `${BASE_S3_URL}/${FOLDER}/3dbooks`;
-
 
 async function generatePresentation(bookId) {
     const connection = await mysql.createConnection({
@@ -68,7 +66,7 @@ let productUrl = '';
 try {
   const existingData = await s3.getObject({
     Bucket: BUCKET_NAME,
-    Key: `${FOLDER}/${bookId}/book_${bookId}_slides.json`,
+    Key: `${FOLDER}/${bookId}/${bookId}_slide_info.json`,
   }).promise();
 
   const existingJson = JSON.parse(existingData.Body.toString('utf-8'));
@@ -83,7 +81,7 @@ try {
 const titleSlide = {
     type: 'title',
     text: 'Highlighting Guide',
-    image: `${TITLE_IMAGE_PREFIX}/title_${bookId}.png`,
+    image: `${BASE_S3_URL}/${FOLDER}/${bookId}/${bookId}_book_cover.png`,
     ...(productUrl ? { productUrl } : {})
   };
   
@@ -96,7 +94,7 @@ const titleSlide = {
     ...(productUrl ? { productUrl } : {})
 };
   
-        const filename = `book_${bookId}_slides.json`;
+        const filename = `${bookId}_slide_info.json`;
         const tempFilePath = path.join(os.tmpdir(), filename);
         fs.writeFileSync(tempFilePath, JSON.stringify(outputData, null, 2));
 

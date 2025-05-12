@@ -74,7 +74,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script>
-const pdfUrl = "https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/bookpdfs/<%= question.bookId %>.pdf?v=" + Date.now();
+const pdfUrl = "https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/<%= question.bookId %>/<%= question.bookId %>_book_scan.pdf?v=" + Date.now();
 const canvas = document.getElementById("pdf-canvas");
 const ctx = canvas.getContext("2d");
 const overlay = document.getElementById("highlight-overlay");
@@ -151,7 +151,7 @@ pdfjsLib.getDocument(pdfUrl).promise.then(doc => {
   pdfDoc = doc;
   totalPages = doc.numPages;
 
-  fetch(`https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/bookpdfs/<%= question.bookId %>.json?v=${Date.now()}`)
+  fetch(`https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/<%= question.bookId %>/<%= question.bookId %>_highlights.json?v=${Date.now()}`)
     .then(res => res.json())
     .then(data => {
       const questionHighlight = data["<%= question.questionId %>"];

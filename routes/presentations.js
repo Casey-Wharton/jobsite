@@ -71,13 +71,13 @@ router.post('/update/:bookId', async (req, res) => {
   
   router.get('/edit/:bookId', async (req, res) => {
     const bookId = req.params.bookId;
-    const s3Key = `${PRESENTATION_FOLDER}/${bookId}/index_${bookId}.html`;
-    const jsonKey = `${PRESENTATION_FOLDER}/${bookId}/book_${bookId}_slides.json`;    
+    const s3Key = `${PRESENTATION_FOLDER}/${bookId}/index.html`;
+    const jsonKey = `${PRESENTATION_FOLDER}/${bookId}/${bookId}_slide_info.json`;    
     const presentationUrl = `https://s3.amazonaws.com/${BUCKET_NAME}/${s3Key}`;
   
     let productUrl = '';
     let bookName = `Book ${bookId}`;
-    let titleImageUrl = `https://s3.amazonaws.com/${BUCKET_NAME}/${PRESENTATION_FOLDER}/3dbooks/title_${bookId}.png`;
+    let titleImageUrl = `https://s3.amazonaws.com/${BUCKET_NAME}/${PRESENTATION_FOLDER}/${bookId}/${bookId}_book_cover.png`;
     
     // Connect to MySQL
     const connection = await mysql.createConnection({
@@ -93,7 +93,7 @@ router.post('/update/:bookId', async (req, res) => {
 try {
   const data = await s3.getObject({
     Bucket: BUCKET_NAME,
-    Key: `${PRESENTATION_FOLDER}/bookpdfs/${bookId}.json`
+    Key: `${PRESENTATION_FOLDER}/${bookId}/${bookId}_highlights.json`
   }).promise();
   highlightJson = JSON.parse(data.Body.toString('utf-8'));
 } catch (err) {
@@ -121,7 +121,7 @@ try {
     try {
       await s3.headObject({
         Bucket: BUCKET_NAME,
-        Key: `${PRESENTATION_FOLDER}/3dbooks/title_${bookId}.png`
+        Key: `${PRESENTATION_FOLDER}/${bookId}/${bookId}_book_cover.png`
       }).promise();
     } catch (err) {
       console.warn(`No title image found for book ${bookId}`);
@@ -132,7 +132,7 @@ try {
 try {
   await s3.headObject({
     Bucket: BUCKET_NAME,
-    Key: `${PRESENTATION_FOLDER}/bookpdfs/${bookId}.pdf`
+    Key: `${PRESENTATION_FOLDER}/${bookId}/${bookId}_book_scan.pdf`
   }).promise();
   hasPdf = true;
 } catch (err) {
@@ -201,7 +201,7 @@ router.post('/upload-title/:bookId', upload.single('titleImage'), async (req, re
       return res.status(400).send('No file uploaded.');
     }
   
-    const fileName = `title_${bookId}.png`;
+    const fileName = `${bookId}_book_cover.png`;
     const s3Key = `${PRESENTATION_FOLDER}/3dbooks/${fileName}`;
   
     try {
@@ -224,7 +224,7 @@ router.post('/upload-title/:bookId', upload.single('titleImage'), async (req, re
 router.post('/update-url/:bookId', upload.none(), async (req, res) => {
     const { bookId } = req.params;
     const { productUrl } = req.body;
-    const jsonKey = `${PRESENTATION_FOLDER}/book_${bookId}_slides.json`;
+    const jsonKey = `${PRESENTATION_FOLDER}/${bookId}/${bookId}_slide_info.json`;
   
     try {
       // Step 1: Download existing JSON
@@ -262,8 +262,8 @@ await s3.putObject({
       return res.status(400).send('Invalid file uploaded. Only PDFs are allowed.');
     }
   
-    const fileName = `${bookId}.pdf`;
-    const s3Key = `${PRESENTATION_FOLDER}/bookpdfs/${fileName}`;
+    const fileName = `${bookId}_book_scan.pdf`;
+    const s3Key = `${PRESENTATION_FOLDER}/${bookId}/${fileName}`;
   
     try {
       await s3.putObject({
@@ -366,7 +366,7 @@ router.post('/update-image-hint/:questionId', async (req, res) => {
       const folderName = bookRows[0].folder_name;
       const filename = `${questionId}.png`;
       const s3ImageKey = `${folderName}/${filename}`;
-      const jsonKey = `00_autopresentations/bookpdfs/${bookId}.json`;
+      const jsonKey = `00_autopresentations/${bookId}/${bookId}_highlights.json`;
       let json = {};
   
       try {
