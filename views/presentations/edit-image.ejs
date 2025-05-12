@@ -8,12 +8,17 @@
     <div style="display: flex; gap: 30px;">
       <!-- LEFT: Question Info -->
       <div style="flex: 1;">
-        <h2>Edit Image for Question ID <%= question.questionId %></h2>
+        <h2>Edit Question ID <%= question.questionId %></h2>
   
         <div style="margin-bottom: 20px;">
-          <strong>Question Text:</strong>
+          <strong>Question:</strong>
           <div><%- question.questionText %></div>
         </div>
+
+        <div style="margin-bottom: 20px;">
+            <strong>Statement:</strong>
+            <div><%- question.statementText %></div>
+          </div>
   
         <div style="margin-bottom: 20px;">
             <strong>Correct Answer:</strong>
@@ -23,7 +28,15 @@
           <strong>Hint:</strong>
           <div><%- question.hint || 'No hint provided' %></div>
         </div>
-  
+        <div style="margin-bottom: 20px;">
+            <strong>Current Image Hint:</strong><br>
+            <% if (hintImageUrl) { %>
+              <img src="<%= hintImageUrl %>" alt="Image Hint Preview" style="max-width: 100%; max-height: 300px; margin-top: 8px; border: 1px solid #ccc; border-radius: 6px;">
+            <% } else { %>
+              <p style="color: #999; margin-top: 8px;">No image hint currently available.</p>
+            <% } %>
+          </div>
+          
 
       </div>
   
@@ -33,7 +46,7 @@
 <div style="flex: 1; height: 600px; position: relative; border: 1px solid #ccc; border-radius: 6px; overflow: hidden;">
     <div id="pdf-wrapper" style="margin: auto; position: relative;">
         <canvas id="pdf-canvas" style="display: block;"></canvas>
-        <div id="highlight-overlay" style="position: absolute; top: 0; left: 0;"></div>
+        <div id="highlight-overlay" style="position: absolute; top: 0; left: 0; mix-blend-mode: multiply;"></div>
       </div>
       
   </div>
@@ -47,10 +60,7 @@
   
     <label for="jump-to-page" style="margin-left: 16px;">Jump to:</label>
     <input type="number" id="jump-to-page" min="1" style="width: 60px; padding: 4px;" />
-    <button id="jump-btn" style="padding: 4px 10px;">Go</button>
-    <button id="clear-highlights-btn" style="margin-top: 8px; padding: 8px 16px; background-color: #b53d3d; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        Clear Highlights
-      </button>      
+    <button id="jump-btn" style="padding: 4px 10px;">Go</button>    
   </div>
 
   <button id="capture-btn" style="margin-top: 12px; padding: 10px 16px; background-color: #32728f; color: white; border: none; border-radius: 4px; cursor: pointer;">
@@ -85,59 +95,79 @@ document.getElementById("jump-btn").addEventListener("click", () => {
   }
 });
 
+document.getElementById("jump-to-page").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    document.getElementById("jump-btn").click();
+  }
+});
+
 function renderPage(num, callback) {
   pdfDoc.getPage(num).then(page => {
+    // Fixed CSS display width (adjust as needed to match your layout)
+    const displayWidth = 612;
+
+    // Use devicePixelRatio to render at higher resolution internally
+    const scale = (window.devicePixelRatio || 1);
+    const unscaledViewport = page.getViewport({ scale: 1 });
+    const aspectRatio = unscaledViewport.height / unscaledViewport.width;
+
     const viewport = page.getViewport({ scale });
-    canvas.height = viewport.height;
-    canvas.width = viewport.width;
+    const internalWidth = displayWidth * scale;
+    const internalHeight = internalWidth * aspectRatio;
 
-    const scaledWidth = canvas.width;
-    const scaledHeight = canvas.height;
+    // Set internal resolution for crisp rendering
+    canvas.width = internalWidth;
+    canvas.height = internalHeight;
 
-    canvas.style.width = `${scaledWidth}px`;
-    canvas.style.height = `${scaledHeight}px`;
-    overlay.style.width = `${scaledWidth}px`;
-    overlay.style.height = `${scaledHeight}px`;
+    // Keep display size fixed (avoids layout shift)
+    canvas.style.width = `${displayWidth}px`;
+    canvas.style.height = `${internalHeight / scale}px`;
+
+    overlay.style.width = `${displayWidth}px`;
+    overlay.style.height = `${internalHeight / scale}px`;
 
     const wrapper = document.getElementById("pdf-wrapper");
-    wrapper.style.width = `${scaledWidth}px`;
-    wrapper.style.height = `${scaledHeight}px`;
+    wrapper.style.width = `${displayWidth}px`;
+    wrapper.style.height = `${internalHeight / scale}px`;
 
     const renderContext = {
       canvasContext: ctx,
-      viewport: viewport
+      viewport: page.getViewport({ scale: internalWidth / unscaledViewport.width })
     };
+
     page.render(renderContext).promise.then(() => {
-      if (callback) callback();  // Call it AFTER PDF is rendered
+      if (callback) callback();
     });
 
     document.getElementById("page-info").textContent = `Page ${pageNum} of ${totalPages}`;
   });
 }
 
-
 const pdfjsLib = window['pdfjsLib'];
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
 pdfjsLib.getDocument(pdfUrl).promise.then(doc => {
   pdfDoc = doc;
   totalPages = doc.numPages;
-  renderPage(pageNum);
+
+  fetch(`https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/bookpdfs/<%= question.bookId %>.json?v=${Date.now()}`)
+    .then(res => res.json())
+    .then(data => {
+      const questionHighlight = data["<%= question.questionId %>"];
+      if (questionHighlight) {
+        pageNum = questionHighlight.page || 1;
+        highlights = questionHighlight.highlights || [];
+        renderPage(pageNum, renderHighlights);
+      } else {
+        renderPage(pageNum); // fallback
+      }
+    })
+    .catch(err => {
+      console.log("No highlights found or error loading JSON", err);
+      renderPage(pageNum); // fallback on error
+    });
 });
-
-fetch(`https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/bookpdfs/<%= question.bookId %>.json`)
-  .then(res => res.json())
-  .then(data => {
-  const questionHighlight = data["<%= question.questionId %>"];
-  if (questionHighlight) {
-    pageNum = questionHighlight.page || 1;
-    highlights = questionHighlight.highlights || [];
-    renderPage(pageNum, renderHighlights);  // ← clean + reliable
-  }
-})
-  .catch(err => {
-    console.log("No highlights found or error loading JSON", err);
-  });
-
 
 let isDrawing = false;
 let startX, startY;
@@ -151,7 +181,7 @@ overlay.addEventListener("mousedown", e => {
   box.className = "highlight-box";
   box.style.position = "absolute";
   box.style.border = "none";
-  box.style.background = "rgba(255, 255, 0, 0.3)";
+  box.style.background = "rgba(255, 255, 0)";
   box.style.left = startX + "px";
   box.style.top = startY + "px";
   overlay.appendChild(box);
@@ -173,30 +203,61 @@ overlay.addEventListener("mousemove", e => {
 overlay.addEventListener("mouseup", () => {
   if (!isDrawing) return;
   isDrawing = false;
+
   const box = overlay.currentBox;
-  const rect = {
-    x: parseFloat(box.style.left),
-    y: parseFloat(box.style.top),
-    width: parseFloat(box.style.width),
-    height: parseFloat(box.style.height)
-  };
+  const width = parseFloat(box.style.width);
+  const height = parseFloat(box.style.height);
+  const x = parseFloat(box.style.left);
+  const y = parseFloat(box.style.top);
+
+  // Prevent invalid or incomplete boxes from being saved
+  if (!isFinite(x) || !isFinite(y) || !isFinite(width) || !isFinite(height) || width <= 0 || height <= 0) {
+    box.remove(); // remove invalid element
+    return;
+  }
+
+  const rect = { x, y, width, height };
   highlights.push(rect);
+
+  box.style.cursor = "pointer";
+  box.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const index = highlights.findIndex(r =>
+      r.x === rect.x &&
+      r.y === rect.y &&
+      r.width === rect.width &&
+      r.height === rect.height
+    );
+    if (index !== -1) {
+      highlights.splice(index, 1);
+      box.remove();
+    }
+  });
 });
 
 document.getElementById("capture-btn").addEventListener("click", () => {
-  // Create an offscreen canvas to merge PDF and highlights
   const finalCanvas = document.createElement("canvas");
   finalCanvas.width = canvas.width;
   finalCanvas.height = canvas.height;
   const finalCtx = finalCanvas.getContext("2d");
+  finalCtx.globalCompositeOperation = "multiply";
 
-  // Draw PDF first
+  // Draw the high-res PDF
   finalCtx.drawImage(canvas, 0, 0);
 
-  // Draw each highlight rectangle
+  // Determine scaling factor between display size and canvas internal size
+  const scaleX = canvas.width / parseFloat(canvas.style.width);
+  const scaleY = canvas.height / parseFloat(canvas.style.height);
+
+  // Draw each highlight rectangle, scaled up to match canvas pixel resolution
   highlights.forEach(rect => {
-    finalCtx.fillStyle = "rgba(255, 255, 0, 0.3)";
-    finalCtx.fillRect(rect.x, rect.y, rect.width, rect.height);
+    finalCtx.fillStyle = "rgba(255, 255, 0)";
+    finalCtx.fillRect(
+      rect.x * scaleX,
+      rect.y * scaleY,
+      rect.width * scaleX,
+      rect.height * scaleY
+    );
   });
 
   const imageData = finalCanvas.toDataURL("image/png");
@@ -206,16 +267,38 @@ document.getElementById("capture-btn").addEventListener("click", () => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       image: imageData,
-      highlights: highlights,
+      highlights: highlights.filter(r =>
+        typeof r.x === 'number' &&
+        typeof r.y === 'number' &&
+        typeof r.width === 'number' &&
+        typeof r.height === 'number' &&
+        r.width > 0 &&
+        r.height > 0
+      ),
       bookId: "<%= question.bookId %>",
       page: pageNum
     })
+  }).then(() => {
+    const msg = document.createElement('div');
+    msg.textContent = "Image hint updated!";
+    msg.style.position = "fixed";
+    msg.style.bottom = "20px";
+    msg.style.right = "20px";
+    msg.style.background = "#32728f";
+    msg.style.color = "white";
+    msg.style.padding = "10px 16px";
+    msg.style.borderRadius = "4px";
+    msg.style.boxShadow = "0 0 10px rgba(0,0,0,0.2)";
+    msg.style.zIndex = 1000;
+    document.body.appendChild(msg);
+    setTimeout(() => msg.remove(), 2000);
   });
 });
 
 function renderHighlights() {
-  overlay.innerHTML = ''; // Clear any existing highlights
-  highlights.forEach(rect => {
+  overlay.innerHTML = ''; // Clear existing boxes
+
+  highlights.forEach((rect, index) => {
     const box = document.createElement("div");
     box.className = "highlight-box";
     box.style.position = "absolute";
@@ -223,12 +306,21 @@ function renderHighlights() {
     box.style.top = rect.y + "px";
     box.style.width = rect.width + "px";
     box.style.height = rect.height + "px";
-    box.style.background = "rgba(255, 255, 0, 0.3)";
-    box.style.pointerEvents = "none"; // Don't block clicks
+    box.style.background = "rgba(255, 255, 0)";
+    box.style.cursor = "pointer";
+    box.setAttribute("data-index", index);
+    
+    // Click-to-remove behavior
+    box.addEventListener("click", (e) => {
+      e.stopPropagation(); // Prevent triggering draw
+      const idx = parseInt(box.getAttribute("data-index"));
+      highlights.splice(idx, 1);
+      renderHighlights(); // Re-render after removal
+    });
+
     overlay.appendChild(box);
   });
 }
-
 
 document.getElementById("prev-page").addEventListener("click", () => {
   if (pageNum <= 1) return;
@@ -240,24 +332,6 @@ document.getElementById("next-page").addEventListener("click", () => {
   if (pageNum >= totalPages) return;
   pageNum++;
   renderPage(pageNum);
-});
-
-document.getElementById("clear-highlights-btn").addEventListener("click", () => {
-  highlights = [];
-  renderHighlights();
-
-  fetch("/presentations/update-image-hint/<%= question.questionId %>", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      image: canvas.toDataURL("image/png"),  // Still required for saving
-      highlights: [],
-      bookId: "<%= question.bookId %>",
-      page: pageNum
-    })
-  });
 });
 
 </script>

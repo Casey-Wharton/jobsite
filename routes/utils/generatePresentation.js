@@ -3,6 +3,8 @@ const AWS = require('aws-sdk');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const sharp = require('sharp'); // for image composition
+const { createCanvas, loadImage } = require('canvas'); // required for local PDF page rendering, if needed
 
 // Configure AWS
 const s3 = new AWS.S3({
@@ -66,7 +68,7 @@ let productUrl = '';
 try {
   const existingData = await s3.getObject({
     Bucket: BUCKET_NAME,
-    Key: `${FOLDER}/book_${bookId}_slides.json`,
+    Key: `${FOLDER}/${bookId}/book_${bookId}_slides.json`,
   }).promise();
 
   const existingJson = JSON.parse(existingData.Body.toString('utf-8'));
@@ -90,8 +92,9 @@ const titleSlide = {
   const outputData = {
     bookName,
     coverImage,
-    slides: finalSlides
-  };
+    slides: finalSlides,
+    ...(productUrl ? { productUrl } : {})
+};
   
         const filename = `book_${bookId}_slides.json`;
         const tempFilePath = path.join(os.tmpdir(), filename);
@@ -100,7 +103,7 @@ const titleSlide = {
         const fileContent = fs.readFileSync(tempFilePath);
         await s3.putObject({
             Bucket: BUCKET_NAME,
-            Key: `${FOLDER}/${filename}`,
+            Key: `${FOLDER}/${bookId}/${filename}`,
             Body: fileContent,
             ContentType: 'application/json',
             ACL: 'public-read'

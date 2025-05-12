@@ -1,5 +1,5 @@
 <div style="padding: 20px; max-width: 900px; margin: auto;">
-    <div style="display:flex; justify-content:space-between;align-items:center;"><h2>Edit Presentation for Book <%= bookId %></h2>
+    <div style="display:flex; justify-content:space-between;align-items:center;"><h2><%= bookName %></h2>
             <!-- Update presentation button -->
     <form method="POST" action="/presentations/update/<%= bookId %>">
         <button type="submit" style="padding: 8px 16px; background-color: #007acc; color: white; border: none; border-radius: 4px;">
@@ -12,7 +12,7 @@
     <!-- Embedded presentation -->
     <div style="margin-bottom: 20px;">
       <iframe
-        src="https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/index_<%= bookId %>.html"
+        src="https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/<%= bookId %>/index_<%= bookId %>.html"
         width="100%"
         height="600"
         allowfullscreen
@@ -85,31 +85,89 @@
 </div>
 
   <div style="border: 1px solid #ccc; border-radius: 8px; padding: 20px;">
-    <h3 style="margin-top: 0;">Slide Images Editor (<%= questionRows.length %> questions)</h3>
+    <h3 id="question-count-header" style="margin-top: 0;">Slide Images Editor (<%= questionRows.length %> questions)</h3>
     <% if (questionRows.length === 0) { %>
       <p>No questions found for this book.</p>
     <% } else { %>
+      <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 20px;">
+        <strong>Filter:</strong>
+        <label><input type="checkbox" id="filter-text" /> Missing Text</label>
+        <label><input type="checkbox" id="filter-audio" /> Missing Audio</label>
+        <label><input type="checkbox" id="filter-highlight" /> Missing Highlight</label>
+      </div>
+      
       <table style="width: 100%; border-collapse: collapse;">
         <thead>
           <tr>
             <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc;">ID</th>
             <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc;">Question</th>
-            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc; width: 160px;">Edit</th>
+            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc; width: 160px;">Hint</th>
+            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc; width: 100px;">Edit</th>
           </tr>
-        </thead>
-        <tbody>
+        </thead>        
+        <tbody id="question-table-body">
           <% questionRows.forEach(row => { %>
             <tr style="border-bottom: 1px solid #c2c2c2;">
               <td style="padding: 8px;"><%= row.questionId %></td>
-              <td style="padding: 8px;"><%= row.questionText %></td>
-              <td style="padding: 8px; width: 160px;">
+              <td style="padding: 8px;"><%- row.questionText %></td>
+              <td style="padding: 8px;"><%- row.hint || '' %></td>
+              <td style="padding: 8px; width: 100px;">
                 <a href="/presentations/edit-image/<%= row.questionId %>?bookId=<%= bookId %>" style="background-color: #32728f; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;">
-                  Edit Image
+                  Edit
                 </a>
               </td>
             </tr>
           <% }); %>
-        </tbody>
+        </tbody>        
       </table>
     <% } %>
   </div>
+
+  <script>
+    const allQuestions = <%- JSON.stringify(questionRows) %>;
+    const highlights = <%- JSON.stringify(highlightJson || {}) %>;
+  
+    function renderFilteredTable() {
+      const tbody = document.getElementById('question-table-body');
+      let visibleCount = 0;
+      tbody.innerHTML = '';
+  
+      const showText = document.getElementById('filter-text').checked;
+      const showAudio = document.getElementById('filter-audio').checked;
+      const showHighlight = document.getElementById('filter-highlight').checked;
+  
+      allQuestions.forEach(q => {
+        const missingText = !q.statementText || q.statementText.trim() === '';
+        const missingAudio = !q.statementAudio || q.statementAudio.trim() === '';
+        const missingHighlight = !(highlights[q.questionId] && highlights[q.questionId].highlights && highlights[q.questionId].highlights.length > 0);
+  
+        if (
+          (showText && !missingText) ||
+          (showAudio && !missingAudio) ||
+          (showHighlight && !missingHighlight)
+        ) {
+          return; // skip
+        }
+  
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="padding: 8px;">${q.questionId}</td>
+          <td style="padding: 8px;">${q.questionText}</td>
+          <td style="padding: 8px;">${q.hint || ''}</td>
+          <td style="padding: 8px; width: 100px;">
+            <a href="/presentations/edit-image/${q.questionId}?bookId=${<%= bookId %>}" style="background-color: #32728f; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;">
+              Edit
+            </a>
+          </td>
+        `;
+        row.style.borderBottom = '1px solid #c2c2c2';
+        tbody.appendChild(row);
+        visibleCount++;
+      });
+      document.getElementById('question-count-header').textContent = `Slide Images Editor (${visibleCount} questions)`;
+    }
+  
+    document.getElementById('filter-text').addEventListener('change', renderFilteredTable);
+    document.getElementById('filter-audio').addEventListener('change', renderFilteredTable);
+    document.getElementById('filter-highlight').addEventListener('change', renderFilteredTable);
+  </script>  
