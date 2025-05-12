@@ -27,13 +27,13 @@ router.get('/', async (req, res) => {
     }).promise();
 
     const presentationFiles = data.Contents
-    .filter(obj => obj.Key.match(/\/index_\d+\.html$/))
+    .filter(obj => obj.Key.match(/\/index(_\d+)?\.html$/) || obj.Key.endsWith('/index.html'))
     .map(obj => {
       const parts = obj.Key.split('/');
       const fileName = parts[parts.length - 1];
       const folder = parts[parts.length - 2];
-      const match = fileName.match(/^index_(\d+)\.html$/);
-      const bookId = match ? match[1] : null;
+      const bookId = folder.match(/^\d+$/) ? folder : null;
+  
       return {
         key: obj.Key,
         fileName,
@@ -41,8 +41,32 @@ router.get('/', async (req, res) => {
         lastModified: obj.LastModified
       };
     })
-    
-      .filter(item => item.bookId); // only include valid ones
+    .filter(item => item.bookId);
+  // Load book names from DB
+const connection = await mysql.createConnection({
+  host: '3.229.7.141',
+  user: 'forge',
+  password: 'qIJOndUTc6s6jtwIqXSQ',
+  database: 'CONTRACTORS_DB_PRD'
+});
+
+const [bookRows] = await connection.execute(
+  `SELECT id, name FROM books WHERE id IN (${presentationFiles.map(p => '?').join(',')})`,
+  presentationFiles.map(p => p.bookId)
+);
+
+const bookMap = {};
+bookRows.forEach(row => {
+  bookMap[row.id.toString()] = row.name;
+});
+
+// Attach book names
+presentationFiles.forEach(file => {
+  file.bookName = bookMap[file.bookId] || `Book ${file.bookId}`;
+});
+
+await connection.end();
+
 
     res.render('presentations/index', { presentationFiles });
   } catch (err) {

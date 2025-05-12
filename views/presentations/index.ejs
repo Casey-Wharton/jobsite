@@ -11,7 +11,7 @@
       <tbody>
         <% presentationFiles.forEach(p => { %>
           <tr>
-            <td style="padding: 8px;"><%= p.fileName %></td>
+            <td style="padding: 8px;"><%= p.bookName %></td>
             <td style="padding: 8px;"><%= p.lastUpdated %></td>
             <td style="padding: 8px; display: flex; gap: 8px;">
                 <form method="POST" action="/presentations/update/<%= p.bookId %>">
