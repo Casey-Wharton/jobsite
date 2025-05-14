@@ -1,12 +1,10 @@
+// Updated generatePresentation.js with fixes for combined audio, highlights, and text formatting
 const mysql = require('mysql2/promise');
 const AWS = require('aws-sdk');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const sharp = require('sharp'); // for image composition
-const { createCanvas, loadImage } = require('canvas'); // required for local PDF page rendering, if needed
 
-// Configure AWS
 const s3 = new AWS.S3({
     accessKeyId: process.env.AWS_ACCESS_KEY_ID,
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
@@ -51,49 +49,76 @@ async function generatePresentation(bookId) {
             WHERE bq.book_id = ? AND q.deleted_at IS NULL
             ORDER BY bq.sort ASC
         `, [bookId]);
-        
-        const slides = slideRows
-            .filter(slide => slide.image_filename && slide.image_filename.trim() !== '')
-            .map(slide => ({
-                text: slide.statement_text,
-                hint: slide.hint,
-                image: `${BASE_S3_URL}/${folderName}/${slide.image_filename}`,
-                audio: slide.statement_audio ? `${BASE_S3_URL}/${slide.statement_audio}` : null
-            }));
-        
-// Check for existing productUrl in top-level JSON
-let productUrl = '';
-try {
-  const existingData = await s3.getObject({
-    Bucket: BUCKET_NAME,
-    Key: `${FOLDER}/${bookId}/${bookId}_slide_info.json`,
-  }).promise();
 
-  const existingJson = JSON.parse(existingData.Body.toString('utf-8'));
-  if (existingJson.productUrl) {
-    productUrl = existingJson.productUrl;
-  }
-} catch (e) {
-  console.warn(`No previous JSON found or couldn't read productUrl: ${e.message}`);
-}
+        // Load highlight JSON
+        const highlightKey = `${FOLDER}/${bookId}/${bookId}_highlights.json`;
+        const highlightData = await s3.getObject({
+            Bucket: BUCKET_NAME,
+            Key: highlightKey
+        }).promise();
+        const highlightJson = JSON.parse(highlightData.Body.toString('utf-8'));
 
+        // Group by page
+        const pageMap = {};
+        for (const q of slideRows) {
+            const highlightEntry = highlightJson[q.question_id];
+            if (!highlightEntry) continue;
+            const page = highlightEntry.page;
+            if (!pageMap[page]) pageMap[page] = [];
+            pageMap[page].push({ ...q, highlightRects: highlightEntry.highlights });
+        }
 
-const titleSlide = {
-    type: 'title',
-    text: 'Highlighting Guide',
-    image: `${BASE_S3_URL}/${FOLDER}/${bookId}/${bookId}_book_cover.png`,
-    ...(productUrl ? { productUrl } : {})
-  };
-  
-  const finalSlides = [titleSlide, ...slides];
+        const slides = [];
+        for (const [page, questions] of Object.entries(pageMap)) {
+            const first = questions[0];
+            const isCombined = questions.length > 1;
+            slides.push({
+                type: isCombined ? 'combined' : 'single',
+                page: parseInt(page),
+                text: isCombined ? questions.map(q => q.statement_text) : questions[0].statement_text,
+                hint: first.hint,
+                hints: isCombined ? questions.map(q => q.hint) : undefined,
+                image: `${BASE_S3_URL}/${folderName}/${first.image_filename}`,
+                audio: questions
+                    .map(q => q.statement_audio)
+                    .filter(a => !!a)
+                    .map(a => `${BASE_S3_URL}/${a}`),
+                highlights: questions.flatMap(q => (q.highlightRects || []).map(h => ({
+                    ...h,
+                    originalWidth: 1068,
+                    originalHeight: 707
+                })))
+            });
+            
+        }
 
-  const outputData = {
-    bookName,
-    coverImage,
-    slides: finalSlides,
-    ...(productUrl ? { productUrl } : {})
-};
-  
+        // Pull top-level product URL from existing JSON if available
+        let productUrl = '';
+        try {
+            const existingData = await s3.getObject({
+                Bucket: BUCKET_NAME,
+                Key: `${FOLDER}/${bookId}/${bookId}_slide_info.json`
+            }).promise();
+            const existingJson = JSON.parse(existingData.Body.toString('utf-8'));
+            if (existingJson.productUrl) productUrl = existingJson.productUrl;
+        } catch (e) {
+            console.warn(`No previous JSON or productUrl: ${e.message}`);
+        }
+
+        const titleSlide = {
+            type: 'title',
+            text: 'Highlighting Guide',
+            image: `${BASE_S3_URL}/${FOLDER}/${bookId}/${bookId}_book_cover.png`,
+            ...(productUrl ? { productUrl } : {})
+        };
+
+        const outputData = {
+            bookName,
+            coverImage,
+            slides: [titleSlide, ...slides],
+            ...(productUrl ? { productUrl } : {})
+        };
+
         const filename = `${bookId}_slide_info.json`;
         const tempFilePath = path.join(os.tmpdir(), filename);
         fs.writeFileSync(tempFilePath, JSON.stringify(outputData, null, 2));
