@@ -52,7 +52,7 @@
                     <% if (typeof item.value === 'string' && item.value.startsWith('https:')) { %>
                       <a href="<%= item.value %>" target="_blank" rel="noopener noreferrer">Click Here</a>
                     <% } else { %>
-                      <%= item.value %>
+                      <%- item.value %>
                     <% } %>
                   </div>
                 </div>
@@ -74,7 +74,7 @@
                     <% if (typeof item.value === 'string' && item.value.startsWith('https:')) { %>
                       <a href="<%= item.value %>" target="_blank" rel="noopener noreferrer">Click Here</a>
                     <% } else { %>
-                      <%= item.value %>
+                      <%- item.value %>
                     <% } %>
                   </div>
                 </div>

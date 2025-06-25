@@ -1,67 +1,170 @@
-<div style="padding: 20px; max-width: 900px; margin: auto;">
-    <div style="display:flex; justify-content:space-between;align-items:center;"><h2><%= bookName %></h2>
-            <!-- Update presentation button -->
-    <form method="POST" action="/presentations/update/<%= bookId %>">
-        <button type="submit" style="padding: 8px 16px; background-color: #007acc; color: white; border: none; border-radius: 4px;">
-          Update Presentation
-        </button>
-      </form>
-    </div>  
-    </div>
-    
-    <!-- Embedded presentation -->
-    <div style="margin-bottom: 20px;">
-      <iframe
-        src="https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/<%= bookId %>/index.html"
-        width="100%"
-        height="600"
-        allowfullscreen
-        style="border: 1px solid #ccc; border-radius: 6px;"
-      ></iframe>
-    </div>
-  
-<!-- Resources box -->
-<div style="border: 1px solid #ccc; border-radius: 8px; padding: 20px; margin-bottom: 30px;">
-    <h3 style="margin-top: 0;">Resources</h3>
-    <div style="display: flex; gap: 20px;margin-bottom:24px;">
-      
-      <!-- Upload Title Image -->
-      <form method="POST" action="/presentations/upload-title/<%= bookId %>" enctype="multipart/form-data" style="flex: 1;">
-          <% if (titleImageUrl) { %>
-            <div style="margin-bottom: 10px;">
-                <label style="display: block; margin-bottom: 6px;">Current Title Image:</label>
-                <img src="<%= titleImageUrl %>" alt="Title Image Preview" style="max-width: 30%; height: auto; border: 1px solid #ccc; border-radius: 4px;">
-            </div>
-            <% } %>
-            
-        <label for="titleImage" style="display: block; margin-bottom: 6px;">Upload Title Image (PNG only):</label>
-        <input type="file" id="titleImage" name="titleImage" accept="image/png" required style="width: 100%; margin-bottom: 8px;">
-        <button type="submit" style="padding: 6px 12px; background-color: #32728f; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          Upload
-        </button>
-      </form>
-  
-<!-- Book Product URL and PDF Upload -->
-<div style="flex: 1;">
-  <!-- Book Product URL -->
-  <form method="POST" action="/presentations/update-url/<%= bookId %>">
-    <label for="productUrl" style="display: block; margin-bottom: 6px;">Book Product URL:</label>
-    <input type="url" id="productUrl" name="productUrl" placeholder="https://example.com/..." value="<%= productUrl || '' %>" style="width: 100%; padding: 6px; border: 1px solid #ccc; border-radius: 4px;" required>
-    <button type="submit" style="margin-top: 8px; padding: 6px 12px; background-color: #32728f; color: white; border: none; border-radius: 4px; cursor: pointer;">
-      Save URL
-    </button>
-  </form>
+<h2 style="text-align:center;padding:4px 8px; background-color:white;box-shadow: 0px 3px 15px rgba(0,0,0,0.2);;border-radius:4px;"><%= bookName %></h2>
 
-  <!-- Upload PDF -->
-  <form method="POST" action="/presentations/upload-pdf/<%= bookId %>" enctype="multipart/form-data" style="margin-top: 20px;">
-    <label for="pdfFile" style="display: block; margin-bottom: 6px;">Upload PDF:</label>
-    <input type="file" id="pdfFile" name="pdfFile" accept="application/pdf" required style="width: 100%; margin-bottom: 8px;">
-    <div style="display: flex; align-items: center; justify-content: space-between;">
-      <button type="submit" style="padding: 6px 12px; background-color: #32728f; color: white; border: none; border-radius: 4px; cursor: pointer;">
-        Upload PDF
+<!-- Tab Buttons -->
+<div class="tab-wrapper">
+  <button class="tab-button active" data-tab="book-details">
+    Book Details
+  </button>
+  <button class="tab-button" data-tab="info-slides">Info Slides</button>
+  <button class="tab-button" data-tab="question-editor">Question Editor</button>
+</div>
+
+<!-- Book Details box -->
+<div
+  id="tab-book-details"
+  class="tab-content"
+  style="
+    padding: 20px;
+    margin-bottom: 30px;
+    background-color: white;
+    display: block;
+    box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
+  "
+>
+  <h3
+    style="
+      margin-top: 0;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: 600;
+      padding: 6px;
+      background-color: #667ead;
+      color: white;
+      border-radius: 4px;
+    "
+  >
+    Book Details
+  </h3>
+  <div style="display: flex; gap: 20px; margin-bottom: 24px">
+    <!-- Upload Title Image -->
+    <form
+      method="POST"
+      action="/presentations/upload-title/<%= bookId %>"
+      enctype="multipart/form-data"
+      style="flex: 1"
+    >
+      <% if (titleImageUrl) { %>
+      <div style="margin-bottom: 10px">
+        <label style="display: block; margin-bottom: 6px"
+          >Current Title Image:</label
+        >
+        <img
+          src="<%= titleImageUrl %>"
+          alt="Title Image Preview"
+          style="
+            max-width: 30%;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+          "
+        />
+      </div>
+      <% } %>
+
+      <label for="titleImage" style="display: block; margin-bottom: 6px"
+        >Upload Title Image (PNG only):</label
+      >
+      <input
+        type="file"
+        id="titleImage"
+        name="titleImage"
+        accept="image/png"
+        required
+        style="width: 100%; margin-bottom: 8px"
+      />
+      <button
+        type="submit"
+        style="
+          padding: 6px 12px;
+          background-color: #32728f;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        "
+      >
+        Upload
       </button>
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <div style="
+    </form>
+
+    <!-- Book Product URL and PDF Upload -->
+    <div style="flex: 1">
+      <!-- Book Product URL -->
+      <form method="POST" action="/presentations/update-url/<%= bookId %>">
+        <label for="productUrl" style="display: block; margin-bottom: 6px"
+          >Book Product URL:</label
+        >
+        <input
+          type="url"
+          id="productUrl"
+          name="productUrl"
+          placeholder="https://example.com/..."
+          value="<%= productUrl || '' %>"
+          style="
+            width: 100%;
+            padding: 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+          "
+          required
+        />
+        <button
+          type="submit"
+          style="
+            margin-top: 8px;
+            padding: 6px 12px;
+            background-color: #32728f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          "
+        >
+          Save URL
+        </button>
+      </form>
+
+      <!-- Upload PDF -->
+      <form
+        method="POST"
+        action="/presentations/upload-pdf/<%= bookId %>"
+        enctype="multipart/form-data"
+        style="margin-top: 20px"
+      >
+        <label for="pdfFile" style="display: block; margin-bottom: 6px"
+          >Upload PDF:</label
+        >
+        <input
+          type="file"
+          id="pdfFile"
+          name="pdfFile"
+          accept="application/pdf"
+          required
+          style="width: 100%; margin-bottom: 8px"
+        />
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          "
+        >
+          <button
+            type="submit"
+            style="
+              padding: 6px 12px;
+              background-color: #32728f;
+              color: white;
+              border: none;
+              border-radius: 4px;
+              cursor: pointer;
+            "
+          >
+            Upload PDF
+          </button>
+          <div style="display: flex; align-items: center; gap: 8px">
+            <div
+              style="
           width: 18px;
           height: 18px;
           border: 2px solid #ccc;
@@ -73,101 +176,541 @@
           color: white;
           font-size: 14px;
           font-weight: bold;
-        ">
-          <% if (hasPdf) { %>✓<% } %>
+        "
+            >
+              <% if (hasPdf) { %>✓<% } %>
+            </div>
+            <span
+              style="font-weight: bold; color: <%= hasPdf ? '#4CAF50' : '#888' %>;"
+              >PDF Uploaded</span
+            >
+          </div>
         </div>
-        <span style="font-weight: bold; color: <%= hasPdf ? '#4CAF50' : '#888' %>;">PDF Uploaded</span>
-      </div>
-      
+      </form>
     </div>
-  </form>
-</div>
-</div>
 
-  <div style="border: 1px solid #ccc; border-radius: 8px; padding: 20px;">
-    <h3 id="question-count-header" style="margin-top: 0;">Slide Images Editor (<%= questionRows.length %> questions)</h3>
-    <% if (questionRows.length === 0) { %>
-      <p>No questions found for this book.</p>
-    <% } else { %>
-      <div style="margin-bottom: 16px; display: flex; align-items: center; gap: 20px;">
-        <strong>Filter:</strong>
-        <label><input type="checkbox" id="filter-text" /> Missing Text</label>
-        <label><input type="checkbox" id="filter-audio" /> Missing Audio</label>
-        <label><input type="checkbox" id="filter-highlight" /> Missing Highlight</label>
-      </div>
-      
-      <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-          <tr>
-            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc;">ID</th>
-            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc;">Question</th>
-            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc; width: 160px;">Hint</th>
-            <th style="text-align: left; padding: 8px; border-bottom: 1px solid #ccc; width: 100px;">Edit</th>
-          </tr>
-        </thead>        
-        <tbody id="question-table-body">
-          <% questionRows.forEach(row => { %>
-            <tr style="border-bottom: 1px solid #c2c2c2;">
-              <td style="padding: 8px;"><%= row.questionId %></td>
-              <td style="padding: 8px;"><%- row.questionText %></td>
-              <td style="padding: 8px;"><%- row.hint || '' %></td>
-              <td style="padding: 8px; width: 100px;">
-                <a href="/presentations/edit-image/<%= row.questionId %>?bookId=<%= bookId %>" style="background-color: #32728f; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;">
-                  Edit
-                </a>
-              </td>
-            </tr>
-          <% }); %>
-        </tbody>        
-      </table>
-    <% } %>
   </div>
+</div>
+<!-- Info Slides Section -->
+<div
+  id="tab-info-slides"
+  class="tab-content"
+  style="
+    padding: 20px;
+    margin-bottom: 30px;
+    background-color: white;
+    display: none;
+    box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
+  "
+>
+  <h3
+    style="
+      margin-top: 0;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: 600;
+      padding: 6px;
+      background-color: #667ead;
+      color: white;
+      border-radius: 4px;
+    "
+  >
+    Info Slides
+  </h3>
+  <div style="display: flex; flex-direction: row; gap: 24px; flex-wrap: nowrap;">
+    <!-- Beginning Info Slide -->
+    <div style="width:50%;">
+      <h4 style="margin: 0 0 10px;text-align:center;">Beginning Info Slides</h4>
+      <button
+        type="button"
+        id="add-beginning-slide-btn"
+        style="
+          padding: 6px 12px;
+          background-color: #32728f;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        "
+      >
+        + Add New Info Slide
+      </button>
+      <div
+        id="beginning-slides-container"
+        style="
+          margin-top: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        "
+      ></div>
+    </div>
 
-  <script>
-    const allQuestions = <%- JSON.stringify(questionRows) %>;
-    const highlights = <%- JSON.stringify(highlightJson || {}) %>;
-  
-    function renderFilteredTable() {
-      const tbody = document.getElementById('question-table-body');
-      let visibleCount = 0;
-      tbody.innerHTML = '';
-  
-      const showText = document.getElementById('filter-text').checked;
-      const showAudio = document.getElementById('filter-audio').checked;
-      const showHighlight = document.getElementById('filter-highlight').checked;
-  
-      allQuestions.forEach(q => {
-        const missingText = !q.statementText || q.statementText.trim() === '';
-        const missingAudio = !q.statementAudio || q.statementAudio.trim() === '';
-        const missingHighlight = !(highlights[q.questionId] && highlights[q.questionId].highlights && highlights[q.questionId].highlights.length > 0);
-  
-        if (
-          (showText && !missingText) ||
-          (showAudio && !missingAudio) ||
-          (showHighlight && !missingHighlight)
-        ) {
-          return; // skip
-        }
-  
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td style="padding: 8px;">${q.questionId}</td>
-          <td style="padding: 8px;">${q.questionText}</td>
-          <td style="padding: 8px;">${q.hint || ''}</td>
-          <td style="padding: 8px; width: 100px;">
-            <a href="/presentations/edit-image/${q.questionId}?bookId=${<%= bookId %>}" style="background-color: #32728f; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;">
+    <!-- Ending Info Slide -->
+    <div style="width:50%;">
+      <h4 style="margin: 0 0 10px;text-align:center;">Ending Info Slides</h4>
+      <button
+        type="button"
+        id="add-ending-slide-btn"
+        style="
+          padding: 6px 12px;
+          background-color: #32728f;
+          color: white;
+          border: none;
+          border-radius: 4px;
+          cursor: pointer;
+        "
+      >
+        + Add New Info Slide
+      </button>
+      <div
+        id="ending-slides-container"
+        style="
+          margin-top: 16px;
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
+        "
+      ></div>
+    </div>
+  </div>
+</div>
+
+<div
+  id="tab-question-editor"
+  class="tab-content"
+  style="
+    padding: 20px;
+    background-color: white;
+    display: none;
+    margin-bottom: 30px;
+    box-shadow: 0px 3px 15px rgba(0,0,0,0.2);
+  "
+>
+  <h3
+    id="question-count-header"
+    style="
+      margin-top: 0;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: 600;
+      padding: 6px;
+      background-color: #667ead;
+      color: white;
+      border-radius: 4px;
+    "
+  >
+    Question Editor (<%= questionRows.length %> questions)
+  </h3>
+  <% if (questionRows.length === 0) { %>
+  <p>No questions found for this book.</p>
+  <% } else { %>
+  <div
+    style="margin-bottom: 16px; display: flex; align-items: center; gap: 20px"
+  >
+    <strong>Filter:</strong>
+    <label><input type="checkbox" id="filter-text" /> Missing Text</label>
+    <label><input type="checkbox" id="filter-audio" /> Missing Audio</label>
+    <label
+      ><input type="checkbox" id="filter-highlight" /> Missing Highlight</label
+    >
+  </div>
+  <div
+    id="question-scroll-container"
+    style="
+      height: 440px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    "
+  >
+    <table style="width: 100%; border-collapse: collapse;background-color:#ececec">
+      <thead>
+        <tr style="background-color: #667ead; color: white">
+          <th
+            style="
+              position: sticky;
+              top: 0;
+              background-color: #667ead;
+              padding: 8px;
+              text-align: left;
+            "
+          >
+            ID
+          </th>
+          <th
+            style="
+              position: sticky;
+              top: 0;
+              background-color: #667ead;
+              padding: 8px;
+              text-align: left;
+            "
+          >
+            Question
+          </th>
+          <th
+            style="
+              position: sticky;
+              top: 0;
+              background-color: #667ead;
+              padding: 8px;
+              text-align: left;
+              width: 160px;
+            "
+          >
+            Hint
+          </th>
+          <th
+            style="
+              position: sticky;
+              top: 0;
+              background-color: #667ead;
+              padding: 8px;
+              text-align: left;
+              width: 100px;
+            "
+          >
+            Edit
+          </th>
+        </tr>
+      </thead>
+      <tbody id="question-table-body">
+        <% questionRows.forEach(row => { %>
+        <tr style="border-bottom: 1px solid #c2c2c2">
+          <td style="padding: 8px"><%= row.questionId %></td>
+          <td style="padding: 8px"><%- row.questionText %></td>
+          <td style="padding: 8px"><%- row.hint || '' %></td>
+          <td style="padding: 8px; width: 100px">
+            <a
+              href="/presentations/edit-image/<%= row.questionId %>?bookId=<%= bookId %>"
+              style="
+                background-color: #32728f;
+                color: white;
+                padding: 6px 12px;
+                border-radius: 4px;
+                text-decoration: none;
+              "
+            >
               Edit
             </a>
           </td>
-        `;
-        row.style.borderBottom = '1px solid #c2c2c2';
-        tbody.appendChild(row);
-        visibleCount++;
+        </tr>
+        <% }); %>
+      </tbody>
+    </table>
+  </div>
+  <% } %>
+</div>
+
+<!-- Update Presentation button -->
+<div style="display: flex; justify-content: center; margin: 20px 0;">
+<form method="POST" action="/presentations/update/<%= bookId %>">
+  <button
+    type="submit"
+    style="
+      padding: 10px 20px;
+      background-color: #234b5e;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 24px;
+      cursor: pointer;
+    "
+  >
+    Update Presentation
+  </button>
+</form>
+</div>
+<!-- Embedded presentation -->
+<div style="margin-bottom: 20px">
+  <iframe
+    src="https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/<%= bookId %>/index.html"
+    width="100%"
+    height="600"
+    allowfullscreen
+    style="border: 1px solid #ccc; border-radius: 6px;box-shadow: 0px 3px 15px rgba(0,0,0,0.2);"
+  ></iframe>
+</div>
+
+<style>
+  .tab-wrapper {
+    display: flex;
+    gap: 2px;
+  }
+
+  .tab-button {
+    padding: 10px 20px;
+    background-color: #ccc;
+    color: #333;
+    border: 1px solid #ccc;
+    border-bottom: none;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  .tab-button.active {
+    background-color: white;
+    color: #333;
+  }
+
+  .tab-content {
+    border: 1px solid #ccc;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 20px;
+    background-color: white;
+  }
+</style>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+<script>
+        const allQuestions = <%- JSON.stringify(questionRows) %>;
+        const highlights = <%- JSON.stringify(highlightJson || {}) %>;
+        const infoSlides = <%- JSON.stringify(infoSlidesJson || { beginning: [], ending: [] }) %>;
+
+        function renderFilteredTable() {
+          const tbody = document.getElementById('question-table-body');
+          let visibleCount = 0;
+          tbody.innerHTML = '';
+
+          const showText = document.getElementById('filter-text').checked;
+          const showAudio = document.getElementById('filter-audio').checked;
+          const showHighlight = document.getElementById('filter-highlight').checked;
+
+          allQuestions.forEach(q => {
+            const missingText = !q.statementText || q.statementText.trim() === '';
+            const missingAudio = !q.statementAudio || q.statementAudio.trim() === '';
+            const missingHighlight = !(highlights[q.questionId] && highlights[q.questionId].highlights && highlights[q.questionId].highlights.length > 0);
+
+            if (
+              (showText && !missingText) ||
+              (showAudio && !missingAudio) ||
+              (showHighlight && !missingHighlight)
+            ) {
+              return; // skip
+            }
+
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td style="padding: 8px;">${q.questionId}</td>
+              <td style="padding: 8px;">${q.questionText}</td>
+              <td style="padding: 8px;">${q.hint || ''}</td>
+              <td style="padding: 8px; width: 100px;">
+                <a href="/presentations/edit-image/${q.questionId}?bookId=${<%= bookId %>}" style="background-color: #32728f; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none;">
+                  Edit
+                </a>
+              </td>
+            `;
+            row.style.borderBottom = '1px solid #c2c2c2';
+            tbody.appendChild(row);
+            visibleCount++;
+          });
+          document.getElementById('question-count-header').textContent = `Question Editor (${visibleCount} questions)`;
+        }
+
+        function createInfoSlideCard(section, existingSlide = null) {
+      const container = document.getElementById(`${section}-slides-container`);
+      const card = document.createElement('div');
+      const slideId = existingSlide?.id || null;
+      card.classList.add('info-slide-card');
+      card.style.border = '1px solid #ccc';
+      card.style.borderRadius = '8px';
+      card.style.padding = '16px';
+      card.style.backgroundColor = '#ececec';
+      card.style.position = 'relative';
+      card.setAttribute('data-slide-id', slideId || `new-${Date.now()}`);
+
+
+
+      card.innerHTML = `
+      <div style="position: absolute; top: 8px; right: 8px; font-weight: bold; font-size: 14px; background: #ccc; padding: 2px 6px; border-radius: 12px;" class="slide-position"></div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; margin-bottom: 4px;">Slide Text:</label>
+          <textarea rows="3" style="width: calc(100% - 16px); padding: 8px; border: 1px solid #ccc; border-radius: 4px;">${existingSlide?.text || ''}</textarea>
+        </div>
+
+<div style="margin-bottom: 12px; display: flex; gap: 8px; flex-wrap: wrap;">
+  <div style="flex: 1; min-width: 160px;">
+    <label style="display: block; margin-bottom: 4px;">Upload Audio:</label>
+    <input type="file" accept="audio/*">
+    ${existingSlide?.audioUrl ? `<div style="margin-top: 4px;"><a href="${existingSlide.audioUrl}" target="_blank">Existing Audio</a></div>` : ''}
+  </div>
+
+  <div style="flex: 1; min-width: 160px;">
+    <label style="display: block; margin-bottom: 4px;">Upload Image:</label>
+    <input type="file" accept="image/*">
+    ${existingSlide?.imageUrl ? `<div style="margin-top: 4px;"><img src="${existingSlide.imageUrl}" style="max-width: 100%; border: 1px solid #ccc;"></div>` : ''}
+  </div>
+</div>
+
+        <div style="margin-top: 16px; display: flex; justify-content: space-between;">
+          <button type="button" class="delete-slide-btn" style="padding: 6px 12px; background-color: #c0392b; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Delete Slide
+          </button>
+          <button type="button" class="save-slide-btn" style="padding: 6px 12px; background-color: #32728f; color: white; border: none; border-radius: 4px; cursor: pointer;">
+            Save Changes
+          </button>
+        </div>
+      `;
+
+      // Delete behavior
+      card.querySelector('.delete-slide-btn').addEventListener('click', async () => {
+        if (!slideId) {
+          container.removeChild(card);
+          return;
+        }
+
+        const confirmed = confirm('Are you sure you want to delete this info slide?');
+        if (!confirmed) return;
+
+        try {
+          const res = await fetch(`/presentations/delete-info-slide/<%= bookId %>/${slideId}`, {
+            method: 'DELETE'
+          });
+
+          const result = await res.json();
+          if (result.success) {
+            container.removeChild(card);
+          } else {
+            alert('Failed to delete slide.');
+          }
+        } catch (err) {
+          console.error('Delete failed:', err);
+          alert('Delete failed.');
+        }
       });
-      document.getElementById('question-count-header').textContent = `Slide Images Editor (${visibleCount} questions)`;
+
+      // Save behavior
+      card.querySelector('.save-slide-btn').addEventListener('click', async () => {
+        const text = card.querySelector('textarea').value;
+        const audioInput = card.querySelector('input[type="file"][accept^="audio"]');
+        const imageInput = card.querySelector('input[type="file"][accept^="image"]');
+
+        const audioFile = audioInput.files[0];
+        const imageFile = imageInput.files[0];
+
+        const formData = new FormData();
+        formData.append('text', text);
+        formData.append('position', section); // "beginning" or "ending"
+        formData.append('bookId', '<%= bookId %>');
+
+        if (slideId) formData.append('slideId', slideId);
+        if (audioFile) formData.append('audio', audioFile);
+        if (imageFile) formData.append('image', imageFile);
+
+        try {
+          const response = await fetch(`/presentations/save-info-slide/<%= bookId %>`, {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await response.json();
+          if (result.success) {
+            alert('Slide saved successfully.');
+          } else {
+            alert('Error saving slide: ' + (result.error || 'Unknown error'));
+          }
+        } catch (err) {
+          console.error('Upload error:', err);
+          alert('Upload failed.');
+        }
+      });
+
+      container.appendChild(card);
     }
-  
-    document.getElementById('filter-text').addEventListener('change', renderFilteredTable);
-    document.getElementById('filter-audio').addEventListener('change', renderFilteredTable);
-    document.getElementById('filter-highlight').addEventListener('change', renderFilteredTable);
-  </script>  
+
+        document.getElementById('filter-text').addEventListener('change', renderFilteredTable);
+        document.getElementById('filter-audio').addEventListener('change', renderFilteredTable);
+        document.getElementById('filter-highlight').addEventListener('change', renderFilteredTable);
+
+        document.getElementById('add-beginning-slide-btn').addEventListener('click', () => {
+      createInfoSlideCard('beginning');
+    });
+
+    document.getElementById('add-ending-slide-btn').addEventListener('click', () => {
+      createInfoSlideCard('ending');
+    });
+
+    infoSlides.beginning.forEach(slide => createInfoSlideCard('beginning', slide));
+    updateSlidePositions('beginning');
+    infoSlides.ending.forEach(slide => createInfoSlideCard('ending', slide));
+    updateSlidePositions('ending');
+
+    document.querySelectorAll('.tab-button').forEach(button => {
+    button.addEventListener('click', () => {
+      const tab = button.getAttribute('data-tab');
+
+      // Toggle tab buttons
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+        btn.style.backgroundColor = '#ccc';
+        btn.style.color = '#333';
+      });
+      button.classList.add('active');
+      button.style.backgroundColor = '#fff';
+      button.style.color = '#333';
+
+      // Toggle tab content
+      document.querySelectorAll('.tab-content').forEach(section => {
+        section.style.display = 'none';
+      });
+    const target = document.getElementById(`tab-${tab}`);
+    if (target) {
+      console.log(`Showing tab: tab-${tab}`);
+      target.style.display = 'block';
+    } else {
+      console.warn(`No element found with ID: tab-${tab}`);
+    }
+    });
+  });
+
+  // Initialize Sortable for beginning and ending slides
+new Sortable(document.getElementById('beginning-slides-container'), {
+  animation: 150,
+  onEnd: () => {
+    console.log('Beginning slides reordered');
+    updateSlidePositions('beginning');
+    saveSlideOrder('beginning');
+  }
+});
+
+new Sortable(document.getElementById('ending-slides-container'), {
+  animation: 150,
+  onEnd: () => {
+    console.log('Ending slides reordered');
+    updateSlidePositions('ending');
+    saveSlideOrder('ending');
+  }
+});
+function updateSlidePositions(section) {
+  const cards = document.querySelectorAll(`#${section}-slides-container .info-slide-card`);
+  cards.forEach((card, index) => {
+    const pos = card.querySelector('.slide-position');
+    if (pos) pos.textContent = index + 1;
+  });
+}
+function saveSlideOrder(section) {
+  const container = document.getElementById(`${section}-slides-container`);
+  const slideIds = Array.from(container.children)
+    .map(card => card.getAttribute('data-slide-id'))
+    .filter(id => id);
+
+  fetch(`/presentations/save-slide-order/<%= bookId %>`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ section, slideIds })
+  }).then(res => res.json())
+    .then(data => {
+      if (!data.success) alert('Failed to save slide order');
+    }).catch(err => {
+      console.error('Save slide order error:', err);
+      alert('Error saving slide order.');
+    });
+}
+
+</script>

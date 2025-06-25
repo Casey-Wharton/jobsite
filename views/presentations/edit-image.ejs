@@ -1,78 +1,125 @@
 <div style="padding: 20px; max-width: 1400px; margin: auto;">
-    <div style="margin-bottom: 20px;">
-      <a href="/presentations/edit/<%= question.bookId %>" style="display: inline-block; padding: 6px 12px; background-color: #888; color: white; border-radius: 4px; text-decoration: none;">
-        ← Back to Edit Presentation
-      </a>
-    </div>
-  
-    <div style="display: flex; gap: 30px;">
-      <!-- LEFT: Question Info -->
+  <div style="margin-bottom: 20px;">
+    <a href="/presentations/edit/<%= question.bookId %>" style="display: inline-block; padding: 6px 12px; background-color: #888; color: white; border-radius: 4px; text-decoration: none;">
+      ← Back to Course Book
+    </a>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 20px;">
+
+    <!-- Question and Statement -->
+    <div style="display: flex; gap: 20px;">
+      <!-- Question -->
       <div style="flex: 1;">
-        <h2>Edit Question ID <%= question.questionId %></h2>
-  
-        <div style="margin-bottom: 20px;">
-          <strong>Question:</strong>
-          <div><%- question.questionText %></div>
-        </div>
-
-        <div style="margin-bottom: 20px;">
-            <strong>Statement:</strong>
-            <div><%- question.statementText %></div>
-          </div>
-  
-        <div style="margin-bottom: 20px;">
-            <strong>Correct Answer:</strong>
-            <p><%= question.correctAnswer || 'No correct answer found' %></p>
-          </div>
-        <div style="margin-bottom: 20px;">
-          <strong>Hint:</strong>
-          <div><%- question.hint || 'No hint provided' %></div>
-        </div>
-        <div style="margin-bottom: 20px;">
-            <strong>Current Image Hint:</strong><br>
-            <% if (hintImageUrl) { %>
-              <img src="<%= hintImageUrl %>" alt="Image Hint Preview" style="max-width: 100%; max-height: 300px; margin-top: 8px; border: 1px solid #ccc; border-radius: 6px;">
-            <% } else { %>
-              <p style="color: #999; margin-top: 8px;">No image hint currently available.</p>
-            <% } %>
-          </div>
-          
-
+        <strong>Question:</strong>
+        <form method="POST" action="/presentations/update-text/<%= question.questionId %>?bookId=<%= question.bookId %>">
+          <textarea class="wysiwyg" name="questionText"><%= question.questionText %></textarea>
+          <button type="submit" style="margin-top: 6px;">Update Question</button>
+        </form>
       </div>
-  
-<!-- RIGHT: Embedded PDF Viewer and Button -->
-<div style="flex: 1; display: flex; flex-direction: column;">
-<!-- PDF.js rendering container -->
-<div style="flex: 1; height: 600px; position: relative; border: 1px solid #ccc; border-radius: 6px; overflow: hidden;">
-    <div id="pdf-wrapper" style="margin: auto; position: relative;">
+
+      <!-- Statement -->
+      <div style="flex: 1;">
+        <strong>Statement:</strong>
+        <form method="POST" action="/presentations/update-statement/<%= question.questionId %>?bookId=<%= question.bookId %>">
+          <textarea class="wysiwyg" name="statementText"><%= question.statementText %></textarea>
+          <button type="submit" style="margin-top: 6px;">Update Statement</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Answers (Single Row of 4) -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+      <!-- Correct -->
+      <div>
+        <strong>Correct:</strong>
+        <form method="POST" action="/presentations/update-answer/<%= question.questionId %>?bookId=<%= question.bookId %>&type=correct">
+          <input type="text" name="answerText" value="<%= question.correctAnswer || '' %>" style="width: 100%; padding: 6px; background-color: rgb(211, 255, 207);" />
+          <button type="submit" style="margin-top: 6px;">Update</button>
+        </form>
+      </div>
+
+      <% for (let i = 0; i < 3; i++) { %>
+        <% if (question.incorrectAnswers[i]) { %>
+          <div>
+            <strong>Incorrect <%= i + 1 %>:</strong>
+            <form method="POST" action="/presentations/update-answer/<%= question.questionId %>?bookId=<%= question.bookId %>&type=incorrect&id=<%= question.incorrectAnswerIds[i] %>">
+              <input type="text" name="answerText" value="<%= question.incorrectAnswers[i] || '' %>" style="width: 100%; padding: 6px; background-color: rgb(255, 207, 207);" />
+              <button type="submit" style="margin-top: 6px;">Update</button>
+            </form>
+          </div>
+        <% } %>
+      <% } %>
+    </div>
+
+    <!-- Hint + Advanced Sort in Row -->
+    <div style="display: flex; gap: 20px;">
+      <!-- Hint -->
+      <div style="flex: 1;">
+        <strong>Hint:</strong>
+        <form method="POST" action="/presentations/update-hint/<%= question.questionId %>?bookId=<%= question.bookId %>">
+          <input type="text" name="hintText" value="<%= question.hint || '' %>" style="width: 100%; padding: 6px;" />
+          <button type="submit" style="margin-top: 6px;">Update Hint</button>
+        </form>
+      </div>
+
+      <!-- Advanced Sort -->
+      <div style="flex: 1;">
+        <strong>Advanced Sort:</strong>
+        <form method="POST" action="/presentations/update-sort/<%= question.questionId %>?bookId=<%= question.bookId %>">
+          <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;">
+            <% for (let i = 0; i < 6; i++) { %>
+              <input 
+                type="text" 
+                name="sort[]" 
+                value="<%= question.complexSort[i] || '' %>" 
+                style="width: 100%; padding: 6px;" />
+            <% } console.log(question.complexSort);%>
+          </div>
+          <button type="submit" style="margin-top: 6px;">Update Sort</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Hint Image + PDF Side-by-Side -->
+<div style="display: flex; gap: 30px; margin-top: 30px;">
+  <!-- Hint Image -->
+  <div style="flex: 1;">
+    <strong>Current Image Hint:</strong><br>
+    <% if (hintImageUrl) { %>
+      <img src="<%= hintImageUrl %>" alt="Image Hint Preview" style="max-width: 100%; max-height: 600px; margin-top: 8px; border: 1px solid #ccc; border-radius: 6px;">
+    <% } else { %>
+      <p style="color: #999; margin-top: 8px;">No image hint currently available.</p>
+    <% } %>
+  </div>
+
+  <!-- PDF Viewer -->
+  <div style="flex: 1; display: flex; flex-direction: column;">
+    <!-- PDF.js rendering container -->
+    <div style="flex: 1; height: 600px; position: relative; border: 1px solid #ccc; border-radius: 6px; overflow: hidden;">
+      <div id="pdf-wrapper" style="margin: auto; position: relative;">
         <canvas id="pdf-canvas" style="display: block;"></canvas>
         <div id="highlight-overlay" style="position: absolute; top: 0; left: 0; mix-blend-mode: multiply;"></div>
       </div>
-      
-  </div>
-  
-  <div style="margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 12px;">
-    <button id="prev-page" style="padding: 6px 12px;">← Prev</button>
-    
-    <span id="page-info" style="font-weight: bold;">Page 1</span>
-    
-    <button id="next-page" style="padding: 6px 12px;">Next →</button>
-  
-    <label for="jump-to-page" style="margin-left: 16px;">Jump to:</label>
-    <input type="number" id="jump-to-page" min="1" style="width: 60px; padding: 4px;" />
-    <button id="jump-btn" style="padding: 4px 10px;">Go</button>    
-  </div>
-
-  <button id="capture-btn" style="margin-top: 12px; padding: 10px 16px; background-color: #32728f; color: white; border: none; border-radius: 4px; cursor: pointer;">
-    Update Image Hint
-  </button>
-  
-  </div>
-  
     </div>
-  </div>  
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <!-- PDF controls -->
+    <div style="margin-top: 10px; display: flex; justify-content: center; align-items: center; gap: 12px;">
+      <button id="prev-page" style="padding: 6px 12px;">← Prev</button>
+      <span id="page-info" style="font-weight: bold;">Page 1</span>
+      <button id="next-page" style="padding: 6px 12px;">Next →</button>
+      <label for="jump-to-page" style="margin-left: 16px;">Jump to:</label>
+      <input type="number" id="jump-to-page" min="1" style="width: 60px; padding: 4px;" />
+      <button id="jump-btn" style="padding: 4px 10px;">Go</button>    
+    </div>
+
+    <button id="capture-btn" style="margin-top: 12px; padding: 10px 16px; background-color: #32728f; color: white; border: none; border-radius: 4px; cursor: pointer;">
+      Update Image Hint
+    </button>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script>
 const pdfUrl = "https://s3.amazonaws.com/contractorcourses.com/00_autopresentations/<%= question.bookId %>/<%= question.bookId %>_book_scan.pdf?v=" + Date.now();
 const canvas = document.getElementById("pdf-canvas");
@@ -106,7 +153,6 @@ function renderPage(num, callback) {
   pdfDoc.getPage(num).then(page => {
     // Fixed CSS display width (adjust as needed to match your layout)
     const displayWidth = 612;
-
     // Use devicePixelRatio to render at higher resolution internally
     const scale = (window.devicePixelRatio || 1);
     const unscaledViewport = page.getViewport({ scale: 1 });
@@ -334,4 +380,16 @@ document.getElementById("next-page").addEventListener("click", () => {
   renderPage(pageNum);
 });
 
+</script>
+<script src="/tinymce/tinymce.min.js"></script>
+
+<script>
+  tinymce.init({
+    selector: 'textarea.wysiwyg',
+    menubar: false,
+    plugins: 'code link image',
+    toolbar: 'undo redo | bold italic underline | link image | code | removeformat',
+    branding: false,
+    height: 180
+  });
 </script>

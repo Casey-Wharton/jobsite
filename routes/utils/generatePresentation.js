@@ -1,4 +1,4 @@
-// Updated generatePresentation.js with fixes for combined audio, highlights, and text formatting
+// Updated generatePresentation.js with info slide injection
 const mysql = require('mysql2/promise');
 const AWS = require('aws-sdk');
 const fs = require('fs');
@@ -29,36 +29,24 @@ async function generatePresentation(bookId) {
             [bookId]
         );
 
-        if (bookRows.length === 0) {
-            throw new Error('Book not found');
-        }
+        if (bookRows.length === 0) throw new Error('Book not found');
 
         const { name: bookName, folder_name: folderName, book_img_url: bookImgFilename } = bookRows[0];
         const coverImage = bookImgFilename ? `${BASE_S3_URL}/${folderName}/${bookImgFilename}` : null;
 
-        const [slideRows] = await connection.execute(`
-            SELECT 
-                q.id AS question_id,
-                q.statement_text,
-                q.statement_audio,
-                bq.hint,
-                bq.hint_image AS image_filename,
-                bq.sort AS sort_order
-            FROM questions q
-            INNER JOIN book_question bq ON q.id = bq.question_id
-            WHERE bq.book_id = ? AND q.deleted_at IS NULL
-            ORDER BY bq.sort ASC
-        `, [bookId]);
+        const [slideRows] = await connection.execute(
+            `SELECT q.id AS question_id, q.statement_text, q.statement_audio, bq.hint, bq.hint_image AS image_filename, bq.sort AS sort_order
+             FROM questions q
+             INNER JOIN book_question bq ON q.id = bq.question_id
+             WHERE bq.book_id = ? AND q.deleted_at IS NULL
+             ORDER BY bq.sort ASC`,
+            [bookId]
+        );
 
-        // Load highlight JSON
         const highlightKey = `${FOLDER}/${bookId}/${bookId}_highlights.json`;
-        const highlightData = await s3.getObject({
-            Bucket: BUCKET_NAME,
-            Key: highlightKey
-        }).promise();
+        const highlightData = await s3.getObject({ Bucket: BUCKET_NAME, Key: highlightKey }).promise();
         const highlightJson = JSON.parse(highlightData.Body.toString('utf-8'));
 
-        // Group by page
         const pageMap = {};
         for (const q of slideRows) {
             const highlightEntry = highlightJson[q.question_id];
@@ -68,11 +56,11 @@ async function generatePresentation(bookId) {
             pageMap[page].push({ ...q, highlightRects: highlightEntry.highlights });
         }
 
-        const slides = [];
+        const contentSlides = [];
         for (const [page, questions] of Object.entries(pageMap)) {
             const first = questions[0];
             const isCombined = questions.length > 1;
-            slides.push({
+            contentSlides.push({
                 type: isCombined ? 'combined' : 'single',
                 page: parseInt(page),
                 text: isCombined ? questions.map(q => q.statement_text) : questions[0].statement_text,
@@ -89,10 +77,8 @@ async function generatePresentation(bookId) {
                     originalHeight: 707
                 })))
             });
-            
         }
 
-        // Pull top-level product URL from existing JSON if available
         let productUrl = '';
         try {
             const existingData = await s3.getObject({
@@ -112,10 +98,34 @@ async function generatePresentation(bookId) {
             ...(productUrl ? { productUrl } : {})
         };
 
+        const infoSlideKey = `${FOLDER}/${bookId}/info_slide_resources/${bookId}_info_slides.json`;
+        let beginningSlides = [], endingSlides = [];
+
+        try {
+            const infoSlideData = await s3.getObject({ Bucket: BUCKET_NAME, Key: infoSlideKey }).promise();
+            const parsed = JSON.parse(infoSlideData.Body.toString('utf-8'));
+
+            beginningSlides = parsed.beginning.map(slide => ({
+                type: 'info',
+                text: slide.text,
+                image: slide.imageUrl || '',
+                audio: slide.audioUrl ? [slide.audioUrl] : []
+            }));
+
+            endingSlides = parsed.ending.map(slide => ({
+                type: 'info',
+                text: slide.text,
+                image: slide.imageUrl || '',
+                audio: slide.audioUrl ? [slide.audioUrl] : []
+            }));
+        } catch (e) {
+            console.warn(`No info slides JSON found: ${e.message}`);
+        }
+
         const outputData = {
             bookName,
             coverImage,
-            slides: [titleSlide, ...slides],
+            slides: [titleSlide, ...beginningSlides, ...contentSlides, ...endingSlides],
             ...(productUrl ? { productUrl } : {})
         };
 
@@ -123,11 +133,10 @@ async function generatePresentation(bookId) {
         const tempFilePath = path.join(os.tmpdir(), filename);
         fs.writeFileSync(tempFilePath, JSON.stringify(outputData, null, 2));
 
-        const fileContent = fs.readFileSync(tempFilePath);
         await s3.putObject({
             Bucket: BUCKET_NAME,
             Key: `${FOLDER}/${bookId}/${filename}`,
-            Body: fileContent,
+            Body: fs.readFileSync(tempFilePath),
             ContentType: 'application/json',
             ACL: 'public-read'
         }).promise();

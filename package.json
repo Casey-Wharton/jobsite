@@ -26,7 +26,8 @@
     "multer-s3": "^3.0.1",
     "mysql2": "^3.14.1",
     "puppeteer": "^23.0.2",
-    "sharp": "^0.34.1"
+    "sharp": "^0.34.1",
+    "tinymce": "^7.9.0"
   },
   "devDependencies": {
     "dotenv": "^16.4.5",
