@@ -78,6 +78,30 @@ router.get('/:state', async (req, res) => {
 
       const licenseIds = records[0].fields.Licenses;
 
+      // Fetch all unique states from Licenses table
+// Step 1: Get all license records
+const allLicenses = await base('Licenses').select({
+  view: 'Grid view',
+  filterByFormula: `NOT({State} = BLANK())`
+}).all();
+
+// Step 2: Extract all linked State record IDs from license records
+const stateRecordIds = [...new Set(
+  allLicenses.flatMap(l => l.fields.State || [])
+)];
+
+// Step 3: Fetch actual State names from States table
+const stateRecords = await base('States').select({
+  filterByFormula: `OR(${stateRecordIds.map(id => `RECORD_ID() = '${id}'`).join(',')})`,
+  view: 'Grid view'
+}).all();
+
+// Step 4: Build a sorted unique array of state names
+const uniqueStates = [...new Set(
+  stateRecords.map(s => s.fields.State).filter(Boolean)
+)].sort();
+
+
       // Fetch licenses using the IDs
       const licenses = await base('Licenses').select({
           filterByFormula: `OR(${licenseIds.map(id => `RECORD_ID() = '${id}'`).join(", ")})`,
@@ -85,43 +109,48 @@ router.get('/:state', async (req, res) => {
       }).all();
 
       // Process licenses
-      const processedLicenses = await Promise.all(
-          licenses.map(async (license) => {
-              const examIds = [
-                  ...(license.fields.Exams || []),
-                  ...(license.fields['Exams 2'] || [])
-              ];
+const processedLicenses = licenses.map(license => {
+    const type = license.fields['License Type'] || 'Other';
+    return {
+        name: license.fields.License || 'Untitled License',
+        permittedWork: license.fields['Permitted Work'] || 'No information available.',
+        experience: license.fields['Experience Requirement'] || 'Not specified.',
+        type,
+        financial: license.fields['Financial Requirement'] || 'Not listed.',
+        insurance: license.fields['Insurance Requirement'] || 'Not listed.',
+        fee: license.fields['Application Fee'] || 'Not listed.'
+    };
+});
 
-              const exams = await base('Exams').select({
-                  filterByFormula: `OR(${examIds.map(id => `RECORD_ID() = '${id}'`).join(", ")})`,
-                  view: 'Grid view'
-              }).all();
+// Group licenses by license type
+const groupedByType = {};
+processedLicenses.forEach(license => {
+    if (!groupedByType[license.type]) {
+        groupedByType[license.type] = [];
+    }
+    groupedByType[license.type].push(license);
+});
 
-              const examNames = exams.map(exam => exam.fields['Exam Name'] || '');
-              const hasBuilder = examNames.some(name => name.includes("🔨"));
-              const hasElectrical = examNames.some(name => name.includes("🗲"));
+// Separate out builder vs direct categories
+const directTypes = ['Electrical', 'Plumbing', 'Mechanical'];
+const builderTypes = Object.keys(groupedByType).filter(type => !directTypes.includes(type));
 
-              return {
-                  name: license.fields.License,
-                  permittedWork: license.fields['Permitted Work'] || 'No information available.',
-                  licenseTypes: license.fields['License Type'] || [],
-                  hasBuilder,
-                  hasElectrical,
-              };
-          })
-      );
 
       processedLicenses.sort((a, b) => a.name.localeCompare(b.name));
 
       const generalStateInfoHtml = marked(records[0].fields['General State Information'] || '');
       const stateSalesPage = records[0].fields['State Sales Page'] || null; // Fetch the State Sales Page URL
 
-      const params = {
-          state: records[0].fields.State,
-          licenses: processedLicenses,
-          generalStateInfo: generalStateInfoHtml,
-          stateSalesPage, // Pass the State Sales Page URL to the template
-      };
+const params = {
+    state: records[0].fields.State,
+    licenseData: groupedByType,         // Keyed by License Type
+    builderTypes,                       // Types to show in Builder accordion
+    directTypes: directTypes.filter(t => groupedByType[t]), // Only those present
+    generalStateInfo: generalStateInfoHtml,
+    stateSalesPage,
+    allStates: uniqueStates,
+};
+
 
       res.render('phone-script/state-page', params);
   } catch (err) {
