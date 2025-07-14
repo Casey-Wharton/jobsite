@@ -1,72 +1,69 @@
-<div style="padding: 20px; max-width: 1400px; margin: auto;">
-  <div style="margin-bottom: 20px;">
-    <a href="/presentations/edit/<%= question.bookId %>" style="display: inline-block; padding: 6px 12px; background-color: #888; color: white; border-radius: 4px; text-decoration: none;">
-      ← Back to Course Book
-    </a>
-  </div>
-
-  <div style="display: flex; flex-direction: column; gap: 20px;">
-
-    <!-- Question and Statement -->
-    <div style="display: flex; gap: 20px;">
-      <!-- Question -->
-      <div style="flex: 1;">
-        <strong>Question:</strong>
-        <form method="POST" action="/presentations/update-text/<%= question.questionId %>?bookId=<%= question.bookId %>">
-          <textarea class="wysiwyg" name="questionText"><%= question.questionText %></textarea>
-          <button type="submit" style="margin-top: 6px;">Update Question</button>
-        </form>
-      </div>
-
-      <!-- Statement -->
-      <div style="flex: 1;">
-        <strong>Statement:</strong>
-        <form method="POST" action="/presentations/update-statement/<%= question.questionId %>?bookId=<%= question.bookId %>">
-          <textarea class="wysiwyg" name="statementText"><%= question.statementText %></textarea>
-          <button type="submit" style="margin-top: 6px;">Update Statement</button>
-        </form>
-      </div>
+<form method="POST" action="/presentations/update-all/<%= question.questionId %>?bookId=<%= question.bookId %>">
+  <div style="padding: 20px; max-width: 1400px; margin: auto;">
+    <div style="margin-bottom: 20px;">
+      <a href="/presentations/edit/<%= question.bookId %>" style="display: inline-block; padding: 6px 12px; background-color: #888; color: white; border-radius: 4px; text-decoration: none;">
+        ← Back to Course Book
+      </a>
     </div>
 
-    <!-- Answers (Single Row of 4) -->
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
-      <!-- Correct -->
-      <div>
-        <strong>Correct:</strong>
-        <form method="POST" action="/presentations/update-answer/<%= question.questionId %>?bookId=<%= question.bookId %>&type=correct">
-          <input type="text" name="answerText" value="<%= question.correctAnswer || '' %>" style="width: 100%; padding: 6px; background-color: rgb(211, 255, 207);" />
-          <button type="submit" style="margin-top: 6px;">Update</button>
-        </form>
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+
+      <!-- Question and Statement -->
+      <div style="display: flex; gap: 20px;">
+        <!-- Question -->
+        <div style="flex: 1;">
+          <strong>Question:</strong>
+          <textarea class="wysiwyg" name="questionText"><%= question.questionText %></textarea>
+        </div>
+
+        <!-- Statement -->
+        <div style="flex: 1;">
+          <strong>Statement:</strong>
+          <textarea class="wysiwyg" name="statementText"><%= question.statementText %></textarea>
+        </div>
       </div>
 
-      <% for (let i = 0; i < 3; i++) { %>
-        <% if (question.incorrectAnswers[i]) { %>
-          <div>
-            <strong>Incorrect <%= i + 1 %>:</strong>
-            <form method="POST" action="/presentations/update-answer/<%= question.questionId %>?bookId=<%= question.bookId %>&type=incorrect&id=<%= question.incorrectAnswerIds[i] %>">
-              <input type="text" name="answerText" value="<%= question.incorrectAnswers[i] || '' %>" style="width: 100%; padding: 6px; background-color: rgb(255, 207, 207);" />
-              <button type="submit" style="margin-top: 6px;">Update</button>
-            </form>
-          </div>
-        <% } %>
+      <!-- Answers (Single Row of 4) -->
+<div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
+  <% question.answers.forEach(answer => { %>
+    <div>
+      <strong><%= answer.correct ? 'Correct' : 'Incorrect' %>:</strong>
+      <% if (answer.correct) { %>
+        <input type="text" name="correctAnswer" value="<%= answer.answer || '' %>" style="width: 100%; padding: 6px; background-color: rgb(211, 255, 207);" />
+      <% } else { %>
+        <input type="text" name="incorrectAnswers[<%= answer.id %>]" value="<%= answer.answer || '' %>" style="width: 100%; padding: 6px; background-color: rgb(255, 207, 207);" />
       <% } %>
     </div>
+  <% }); %>
+</div>
 
-    <!-- Hint + Advanced Sort in Row -->
-    <div style="display: flex; gap: 20px;">
-      <!-- Hint -->
-      <div style="flex: 1;">
-        <strong>Hint:</strong>
-        <form method="POST" action="/presentations/update-hint/<%= question.questionId %>?bookId=<%= question.bookId %>">
-          <input type="text" name="hintText" value="<%= question.hint || '' %>" style="width: 100%; padding: 6px;" />
-          <button type="submit" style="margin-top: 6px;">Update Hint</button>
-        </form>
-      </div>
 
-      <!-- Advanced Sort -->
-      <div style="flex: 1;">
-        <strong>Advanced Sort:</strong>
-        <form method="POST" action="/presentations/update-sort/<%= question.questionId %>?bookId=<%= question.bookId %>">
+      <!-- Hint + Advanced Sort in Row -->
+      <div style="display: flex; gap: 20px;">
+        <!-- Hint -->
+        <div style="flex: 1;">
+          <strong>Hint:</strong>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <input type="text" name="hintText" value="<%= question.hint || '' %>" style="flex: 1; padding: 6px;" />
+
+<label style="display: flex; align-items: center; gap: 4px;">
+<input type="hidden" name="featured" value="false">
+<input type="checkbox" name="featured" value="true" <%= question.featured ? 'checked' : '' %> />
+  Featured
+</label>
+
+<label style="display: flex; align-items: center; gap: 4px;">
+<input type="hidden" name="randomize_answers" value="false">
+<input type="checkbox" name="randomize_answers" value="true" <%= question.randomize_answers ? 'checked' : '' %> />
+  Do Not Randomize Answers
+</label>
+
+          </div>
+        </div>
+
+        <!-- Advanced Sort -->
+        <div style="flex: 1;">
+          <strong>Advanced Sort:</strong>
           <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px;">
             <% for (let i = 0; i < 6; i++) { %>
               <input 
@@ -74,12 +71,20 @@
                 name="sort[]" 
                 value="<%= question.complexSort[i] || '' %>" 
                 style="width: 100%; padding: 6px;" />
-            <% } console.log(question.complexSort);%>
+            <% } %>
           </div>
-          <button type="submit" style="margin-top: 6px;">Update Sort</button>
-        </form>
+        </div>
+      </div>
+
+      <!-- Submit Button -->
+      <div>
+        <button type="submit" style="margin-top: 10px; padding: 10px 20px; background-color: #32728f; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          Update All
+        </button>
       </div>
     </div>
+  </div>
+</form>
 
     <!-- Hint Image + PDF Side-by-Side -->
 <div style="display: flex; gap: 30px; margin-top: 30px;">

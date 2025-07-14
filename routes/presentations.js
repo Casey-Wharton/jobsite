@@ -262,8 +262,7 @@ router.post('/upload-title/:bookId', upload.single('titleImage'), async (req, re
         ContentType: 'image/png',
         ACL: 'public-read'
       }).promise();
-  
-      console.log(`Uploaded title image: ${s3Key}`);
+
       res.redirect(`/presentations/edit/${bookId}`);
     } catch (err) {
       console.error('Failed to upload title image:', err);
@@ -324,7 +323,6 @@ await s3.putObject({
         ACL: 'public-read'
       }).promise();
   
-      console.log(`Uploaded PDF: ${s3Key}`);
       res.redirect(`/presentations/edit/${bookId}`);
     } catch (err) {
       console.error('Failed to upload PDF:', err);
@@ -352,6 +350,8 @@ await s3.putObject({
           q.id AS questionId,
           q.question AS questionText,
           q.statement_text AS statementText,
+          q.featured,
+          q.randomize_answers,
           bq.hint,
           bq.complex_sort,
           bq.book_id AS bookId,
@@ -375,6 +375,16 @@ await s3.putObject({
   
       const question = rows[0];
   
+      const [answers] = await connection.execute(`
+  SELECT id, answer, correct
+  FROM answers
+  WHERE question_id = ?
+  ORDER BY id ASC
+`, [questionId]);
+
+question.answers = answers;
+
+
       // Get incorrect answers (and their IDs)
       const [incorrectRows] = await connection.execute(`
         SELECT id, answer
@@ -405,7 +415,7 @@ await s3.putObject({
       if (question.hint_image && question.folder_name) {
         hintImageUrl = `https://s3.amazonaws.com/contractorcourses.com/${question.folder_name}/${question.hint_image}?v=${Date.now()}`;
       }
-  
+
       res.render('presentations/edit-image', { question, hintImageUrl });
   
     } catch (err) {
@@ -751,160 +761,6 @@ router.post('/save-slide-order/:bookId', async (req, res) => {
       res.status(500).json({ error: 'Failed to delete slide.' });
     }
   });
-  
-  router.post('/update-text/:questionId', async (req, res) => {
-    const { questionId } = req.params;
-    const { bookId } = req.query;
-    const { questionText } = req.body;
-  
-    if (!questionText || !bookId) return res.status(400).send('Missing fields.');
-  
-    const connection = await mysql.createConnection({
-      host: '3.229.7.141',
-      user: 'forge',
-      password: 'qIJOndUTc6s6jtwIqXSQ',
-      database: 'CONTRACTORS_DB_PRD'
-    });
-  
-    try {
-      await connection.execute(
-        `UPDATE questions SET question = ? WHERE id = ?`,
-        [questionText, questionId]
-      );
-      res.redirect(`/presentations/edit-image/${questionId}?bookId=${bookId}`);
-    } catch (err) {
-      console.error('Error updating question text:', err);
-      res.status(500).send('Failed to update.');
-    } finally {
-      await connection.end();
-    }
-  });
-  
-  router.post('/update-statement/:questionId', async (req, res) => {
-    const { questionId } = req.params;
-    const { bookId } = req.query;
-    const { statementText } = req.body;
-  
-    if (!statementText || !bookId) return res.status(400).send('Missing fields.');
-  
-    const connection = await mysql.createConnection({
-      host: '3.229.7.141',
-      user: 'forge',
-      password: 'qIJOndUTc6s6jtwIqXSQ',
-      database: 'CONTRACTORS_DB_PRD'
-    });
-  
-    try {
-      await connection.execute(
-        `UPDATE questions SET statement_text = ? WHERE id = ?`,
-        [statementText, questionId]
-      );
-      res.redirect(`/presentations/edit-image/${questionId}?bookId=${bookId}`);
-    } catch (err) {
-      console.error('Error updating statement text:', err);
-      res.status(500).send('Failed to update.');
-    } finally {
-      await connection.end();
-    }
-  });
-  
-  router.post('/update-answer/:questionId', async (req, res) => {
-    const { questionId } = req.params;
-    const { bookId, type, id } = req.query;
-    const { answerText } = req.body;
-  
-    const connection = await mysql.createConnection({
-      host: '3.229.7.141',
-      user: 'forge',
-      password: 'qIJOndUTc6s6jtwIqXSQ',
-      database: 'CONTRACTORS_DB_PRD'
-    });
-  
-    try {
-      if (type === 'correct') {
-        await connection.execute(
-          'UPDATE answers SET answer = ? WHERE question_id = ? AND correct = 1',
-          [answerText, questionId]
-        );
-      } else if (type === 'incorrect' && id) {
-        await connection.execute(
-          'UPDATE answers SET answer = ? WHERE id = ?',
-          [answerText, id]
-        );
-      }      
-  
-      res.redirect(`/presentations/edit-image/${questionId}?bookId=${bookId}`);
-    } catch (err) {
-      console.error('Error updating answer:', err);
-      res.status(500).send('Failed to update answer');
-    } finally {
-      await connection.end();
-    }
-  });
-  
-  router.post('/update-hint/:questionId', async (req, res) => {
-    const { questionId } = req.params;
-    const { bookId } = req.query;
-    const { hintText } = req.body;
-  
-    const connection = await mysql.createConnection({
-      host: '3.229.7.141',
-      user: 'forge',
-      password: 'qIJOndUTc6s6jtwIqXSQ',
-      database: 'CONTRACTORS_DB_PRD'
-    });
-  
-    try {
-      await connection.execute(
-        'UPDATE book_question SET hint = ? WHERE question_id = ? AND book_id = ?',
-        [hintText, questionId, bookId]
-      );
-  
-      res.redirect(`/presentations/edit-image/${questionId}?bookId=${bookId}`);
-    } catch (err) {
-      console.error('Error updating hint:', err);
-      res.status(500).send('Failed to update hint');
-    } finally {
-      await connection.end();
-    }
-  });
-
-  router.post('/update-sort/:questionId', async (req, res) => {
-    const { questionId } = req.params;
-    const { bookId } = req.query;
-    const sortArray = req.body['sort[]'] || req.body.sort || [];
-  
-    // Ensure it's always an array of exactly 6 strings
-    const cleanArray = Array.isArray(sortArray)
-      ? sortArray.map(s => s || '')
-      : ['', '', '', '', '', ''];
-  
-    while (cleanArray.length < 6) {
-      cleanArray.push('');
-    }
-  
-    const mysql = require('mysql2/promise');
-    const connection = await mysql.createConnection({
-      host: '3.229.7.141',
-      user: 'forge',
-      password: 'qIJOndUTc6s6jtwIqXSQ',
-      database: 'CONTRACTORS_DB_PRD'
-    });
-  
-    try {
-      await connection.execute(
-        'UPDATE book_question SET complex_sort = ? WHERE question_id = ? AND book_id = ?',
-        [JSON.stringify(cleanArray), questionId, bookId]
-      );
-      console.log(cleanArray);
-      res.redirect(`/presentations/edit-image/${questionId}?bookId=${bookId}`);
-    } catch (err) {
-      console.error('Error updating complex_sort:', err);
-      res.status(500).send('Failed to update complex_sort');
-    } finally {
-      await connection.end();
-    }
-  });  
 
   router.post('/create-new-book/:bookId', async (req, res) => {
     const { bookId } = req.params;
@@ -953,5 +809,83 @@ router.post('/save-slide-order/:bookId', async (req, res) => {
       res.status(500).send('Error creating new book folder.');
     }
   });  
+
+router.post('/update-all/:questionId', async (req, res) => {
+  const { questionId } = req.params;
+  const { bookId } = req.query;
+
+  const {
+    questionText,
+    statementText,
+    correctAnswer,
+    hintText,
+    featured,
+    randomize_answers
+  } = req.body;
+
+  // ======= DB CONNECTION =======
+  const mysql = require('mysql2/promise');
+  const connection = await mysql.createConnection({
+    host: '3.229.7.141',
+    user: 'forge',
+    password: 'qIJOndUTc6s6jtwIqXSQ',
+    database: 'CONTRACTORS_DB_PRD'
+  });
+
+  try {
+    const incorrectAnswersObj = req.body.incorrectAnswers || {};
+
+    for (const [id, text] of Object.entries(incorrectAnswersObj)) {
+      await connection.execute(
+        'UPDATE answers SET answer = ? WHERE id = ?',
+        [text, id]
+      );
+    }
+
+    // ======= HANDLE CHECKBOXES =======
+    const featuredValue = Array.isArray(req.body.featured)
+      ? req.body.featured.includes('true')
+      : req.body.featured === 'true';
+
+    const randomizeValue = Array.isArray(req.body.randomize_answers)
+      ? req.body.randomize_answers.includes('true')
+      : req.body.randomize_answers === 'true';
+
+    // ======= HANDLE SORT =======
+    let sortArray = req.body['sort[]'] || req.body.sort || [];
+    const cleanSortArray = Array.isArray(sortArray)
+      ? sortArray.map(s => s || '')
+      : ['', '', '', '', '', ''];
+
+    while (cleanSortArray.length < 6) {
+      cleanSortArray.push('');
+    }
+
+    // 1. Update question + statement + checkboxes
+    await connection.execute(
+      'UPDATE questions SET question = ?, statement_text = ?, featured = ?, randomize_answers = ? WHERE id = ?',
+      [questionText, statementText, featuredValue, randomizeValue, questionId]
+    );
+
+    // 2. Update correct answer
+    await connection.execute(
+      'UPDATE answers SET answer = ? WHERE question_id = ? AND correct = 1',
+      [correctAnswer, questionId]
+    );
+
+    // 3. Update hint and complex_sort
+    await connection.execute(
+      'UPDATE book_question SET hint = ?, complex_sort = ? WHERE question_id = ? AND book_id = ?',
+      [hintText, JSON.stringify(cleanSortArray), questionId, bookId]
+    );
+
+    res.redirect(`/presentations/edit-image/${questionId}?bookId=${bookId}`);
+  } catch (err) {
+    console.error('Error in update-all:', err);
+    res.status(500).send('Failed to update all fields');
+  } finally {
+    await connection.end();
+  }
+});
 
 module.exports = router;

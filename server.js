@@ -25,7 +25,7 @@ app.use(expressLayouts);
 app.use(methodOverride('_method'))
 app.use(express.static('public'));
 // No idea what this does
-app.use(express.urlencoded({ limit: '10mb', extended: false }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(express.json({ limit: '10mb' }));
 app.use('/tinymce', express.static(path.join(__dirname, 'node_modules', 'tinymce')));
 
